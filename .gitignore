@@ -34,6 +34,12 @@ Thumbs.db
 logs/
 *.log
 
+# Codex / temp outputs
+codex-*.out
+codex-*.err
+*.out
+*.err
+
 # Coverage
 coverage/
 
