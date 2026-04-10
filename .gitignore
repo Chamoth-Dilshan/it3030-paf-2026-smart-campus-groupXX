@@ -9,7 +9,6 @@ pnpm-debug.log*
 
 # Java / Maven
 target/
-.mvn/
 *.class
 *.jar
 *.war
@@ -18,6 +17,9 @@ target/
 # Environment files
 .env
 .env.*
+!.env.example
+!frontend/.env.example
+!backend/.env.example
 
 # IDE / Editor
 .idea/
