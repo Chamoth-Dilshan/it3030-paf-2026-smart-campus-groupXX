@@ -9,3 +9,4 @@ This file will hold future architecture decisions for the Smart Campus Operation
 - MongoDB document design
 - Authentication and authorization flow
 - Notifications architecture
+- Local CORS and frontend-backend integration strategy
