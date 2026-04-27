@@ -7,9 +7,10 @@ import com.sliit.smartcampus.dto.BookingResponse;
 import com.sliit.smartcampus.dto.BookingReviewRequest;
 import com.sliit.smartcampus.dto.BookingStatusResponse;
 import com.sliit.smartcampus.dto.CreateBookingRequest;
+import com.sliit.smartcampus.exception.BookingConflictException;
 import com.sliit.smartcampus.exception.BookingNotFoundException;
-import com.sliit.smartcampus.exception.BookingStateException;
 import com.sliit.smartcampus.exception.BookingValidationException;
+import com.sliit.smartcampus.exception.InvalidBookingStateException;
 import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
 import com.sliit.smartcampus.repository.BookingRepository;
@@ -160,7 +161,7 @@ public class BookingService {
 
     private void requireStatus(Booking booking, BookingStatus requiredStatus, String message) {
         if (booking.getStatus() != requiredStatus) {
-            throw new BookingStateException(message);
+            throw new InvalidBookingStateException(message);
         }
     }
 
@@ -173,7 +174,7 @@ public class BookingService {
                 request.getStartTime());
 
         if (hasOverlap) {
-            throw new BookingValidationException("Resource already has a booking during the selected time");
+            throw new BookingConflictException("Resource already has a booking during the selected time");
         }
     }
 
@@ -190,7 +191,7 @@ public class BookingService {
                 .anyMatch(overlap -> !overlap.getId().equals(booking.getId()));
 
         if (hasOtherOverlap) {
-            throw new BookingValidationException("Resource already has another booking during the selected time");
+            throw new BookingConflictException("Resource already has another booking during the selected time");
         }
     }
 }
