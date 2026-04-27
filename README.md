@@ -1,109 +1,135 @@
-# Smart Campus Operations Hub
+# Smart Campus Operations System
 
-Smart Campus Operations Hub is a starter monorepo for a university group project built with React, Vite, Spring Boot, Java 17, MongoDB, and Google OAuth 2.0.
+Smart Campus Operations System is a full-stack platform for managing campus resources, bookings, incidents, and technician workflows.
 
-## Project Overview
-
-This repository provides a clean starter setup for a 4-member university team. It includes a runnable frontend, a runnable backend scaffold, starter package boundaries, placeholder models/pages, and CI so the team can start implementing features without first organizing the project from scratch.
-
-## Tech Stack
+## Stack
 
 - Frontend: React + Vite
-- Backend: Spring Boot 3 + Java 17
+- Backend: Spring Boot + Maven
 - Database: MongoDB
-- Authentication: Google OAuth 2.0
-- CI: GitHub Actions
+- Auth: JWT-based authentication
 
-## Main Modules
+## Repository Structure
 
-- Facilities & Assets Catalogue
-- Booking Management
-- Maintenance & Incident Ticketing
-- Notifications
-- Authentication & Authorization
+- `frontend/` - React client app
+- `backend/` - Spring Boot API
+- `docs/` - project docs
+- `uploads/` - uploaded assets served by backend
 
-## Folder Structure
+## Prerequisites
 
-```text
-.
-|-- frontend
-|-- backend
-|-- docs                # architecture notes and future documentation
-|-- postman             # API collection placeholders
-`-- .github/workflows   # CI pipeline configuration
-```
+- Node.js 20.19+ (or 22.12+ recommended)
+- npm 10+
+- Java 21+ (project currently runs on Java 25 in this workspace)
+- Maven wrapper (already included as `mvnw.cmd`)
+- MongoDB connection (configured via environment or `application.properties`)
 
-## Beginner-Friendly Team Split
-
-- Member 1: authentication, authorization, Google OAuth setup, user role management
-- Member 2: facilities and assets catalogue
-- Member 3: booking workflows and admin booking approvals
-- Member 4: maintenance tickets, technician queue, and notifications
-
-## Branch Naming Suggestion
-
-Use simple feature branches so each member can work in parallel:
-
-- `feature/member1-auth`
-- `feature/member2-resources`
-- `feature/member3-bookings`
-- `feature/member4-tickets-notifications`
-
-You can also create task-specific branches like `feature/member3-booking-approval-ui`.
-
-## Local Setup
+## Environment Setup
 
 ### Frontend
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Create `frontend/.env` (optional, defaults shown):
 
-Frontend placeholder environment values can be copied from `frontend/.env.example`.
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+VITE_BACKEND_URL=http://localhost:8080
+```
 
 ### Backend
 
-```bash
-cd backend
-./mvnw spring-boot:run
+You can provide MongoDB URI and server port via environment variables:
+
+```powershell
+$env:SPRING_MONGODB_URI="<your_mongodb_uri>"
+$env:SERVER_PORT="8080"
 ```
 
-On Windows PowerShell, use:
+If not provided, backend falls back to values in `backend/src/main/resources/application.properties`.
+
+## Run Locally
+
+### 1. Start Backend
+
+From workspace root:
 
 ```powershell
 cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-The backend will automatically load local values from `backend/.env` when that file exists and you start the app from the `backend` directory.
+Backend default URL: `http://localhost:8080`
 
-The backend starter keeps security and database integration as placeholders so the app structure is ready before real business logic is added.
+### 2. Start Frontend
 
-## MongoDB Setup Note
+Open a second terminal:
 
-- The backend currently uses a placeholder MongoDB URI with a local default.
-- Update values in `backend/.env` based on `backend/.env.example`.
-- No production-ready schema or seed data is included yet.
+```powershell
+cd frontend
+npm install
+npm run dev
+```
 
-## Google OAuth Setup Note
+Frontend default URL: `http://localhost:5173`
 
-- Google OAuth 2.0 is not fully implemented yet.
-- The scaffold only reserves the security/config structure for a future integration.
-- Example client keys are documented as placeholders only and should not be committed with real secrets.
+## Build
 
-## Notes
+### Frontend build
 
-- This scaffold intentionally avoids business logic.
-- Backend models, controllers, repositories, and services are placeholders.
-- OAuth login flow, MongoDB data access rules, and notification delivery are not implemented yet.
-- The structure is modular so each team member can work in separate areas with minimal overlap.
+```powershell
+cd frontend
+npm run build
+```
 
-## Next Steps
+### Backend package
 
-1. Define API contracts in `docs/`.
-2. Finalize the MongoDB schema strategy.
-3. Add role-based route protection in the frontend.
-4. Implement Google OAuth 2.0 login flow in the backend and frontend.
-5. Replace placeholder services with real API integration.
+```powershell
+cd backend
+.\mvnw.cmd clean package
+```
+
+## Key Features
+
+- Resource booking and availability checks
+- Booking analytics and dashboard stats
+- Incident/ticket management
+- Technician assignment and ticket tracking
+- Notifications
+- File upload and static asset serving
+
+## Performance Note (Issue Management)
+
+Issue Management screens now use a shared Redux Toolkit cache for incident data:
+
+- Shared store in `frontend/src/store/`
+- Cached fetch with TTL to reduce repeated API calls between ticket pages
+- Manual refresh still supported where needed
+
+## Common Troubleshooting
+
+### 1. `ERR_CONNECTION_REFUSED` to `:8080`
+
+Backend is not running. Start backend first.
+
+### 2. `401 Unauthorized` on `/api/...`
+
+Session token is missing/expired. Log out and log in again.
+
+### 3. Port 8080 already in use
+
+Stop existing process on 8080 or change backend port.
+
+### 4. Upload URL returns 404
+
+File does not exist in upload directory (expected for deleted or wrong filenames).
+
+## Suggested Dev Workflow
+
+1. Start backend.
+2. Start frontend.
+3. Log in through the app.
+4. Validate ticket and booking flows.
+5. Use browser React DevTools for component debugging.
+
+## License
+
+Academic project for SLIIT PAF 2026.
