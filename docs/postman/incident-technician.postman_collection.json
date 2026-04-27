@@ -1,0 +1,314 @@
+{
+  "info": {
+    "_postman_id": "c0a5cbe1-6e8b-4c7f-bf20-4b5a4f1c9d11",
+    "name": "Incident and Technician API Tests",
+    "description": "Postman collection for exercising the incident and technician backend APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Incidents",
+      "item": [
+        {
+          "name": "Create Incident",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidents"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reportedBy\": \"Test User\",\n  \"email\": \"test.user@example.com\",\n  \"registrationNumber\": \"STU-2026-001\",\n  \"faculty\": \"Computing\",\n  \"contactNumber\": \"0771234567\",\n  \"title\": \"Projector not turning on\",\n  \"campus\": \"Main Campus\",\n  \"category\": \"IT Support\",\n  \"resource\": \"Projector\",\n  \"description\": \"The projector in lecture hall B is not powering up.\",\n  \"priority\": \"High\",\n  \"urgent\": true,\n  \"proofUrls\": [\n    \"https://example.com/proof/projector.jpg\"\n  ],\n  \"remarksHistory\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Incident response includes an id', function () {",
+                  "  pm.expect(response).to.have.property('id');",
+                  "});",
+                  "pm.test('Incident response includes a generated referenceId', function () {",
+                  "  pm.expect(response.referenceId).to.be.a('string').and.not.be.empty;",
+                  "});",
+                  "pm.test('Incident starts as Pending', function () {",
+                  "  pm.expect(response.status).to.eql('Pending');",
+                  "});",
+                  "pm.test('Incident urgent flag is true', function () {",
+                  "  pm.expect(response.urgent).to.eql(true);",
+                  "});",
+                  "pm.test('Incident dateReported is present', function () {",
+                  "  pm.expect(response).to.have.property('dateReported');",
+                  "});",
+                  "pm.environment.set('incidentId', response.id);",
+                  "pm.environment.set('incidentReferenceId', response.referenceId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Incidents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/incidents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidents"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(response).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Incident By Id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/incidents/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidents",
+                "{{incidentId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Returned incident matches requested id', function () {",
+                  "  pm.expect(response.id).to.eql(pm.environment.get('incidentId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Incident",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidents/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidents",
+                "{{incidentId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Progress\",\n  \"assignedTechnicianId\": \"tech-001\",\n  \"assignedTechnicianName\": \"Sample Technician\",\n  \"assignedTechnicianCategory\": \"IT Support\",\n  \"urgent\": false,\n  \"remarksHistory\": [\n    \"Assigned for review\"\n  ],\n  \"rejectionReason\": null\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Incident status is updated', function () {",
+                  "  pm.expect(response.status).to.eql('In Progress');",
+                  "});",
+                  "pm.test('Assigned technician id is updated', function () {",
+                  "  pm.expect(response.assignedTechnicianId).to.eql('tech-001');",
+                  "});",
+                  "pm.test('Remarks history is replaced', function () {",
+                  "  pm.expect(response.remarksHistory).to.be.an('array');",
+                  "  pm.expect(response.remarksHistory[0]).to.eql('Assigned for review');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Technicians",
+      "item": [
+        {
+          "name": "Create Technician",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/technicians",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "technicians"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Technician\",\n  \"email\": \"sample.technician@example.com\",\n  \"category\": \"IT Support\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Technician response includes an id', function () {",
+                  "  pm.expect(response).to.have.property('id');",
+                  "});",
+                  "pm.test('Technician name is returned', function () {",
+                  "  pm.expect(response.name).to.eql('Sample Technician');",
+                  "});",
+                  "pm.test('Technician category is returned', function () {",
+                  "  pm.expect(response.category).to.eql('IT Support');",
+                  "});",
+                  "pm.environment.set('technicianId', response.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Technicians",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/technicians",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "technicians"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(response).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Technician",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/technicians/{{technicianId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "technicians",
+                "{{technicianId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 204', function () {",
+                  "  pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
