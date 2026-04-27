@@ -3,10 +3,12 @@ package com.sliit.smartcampus.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@EnableMongoAuditing
 public class AppConfig {
 
     @Value("${app.cors.allowed-origin:http://localhost:5173}")

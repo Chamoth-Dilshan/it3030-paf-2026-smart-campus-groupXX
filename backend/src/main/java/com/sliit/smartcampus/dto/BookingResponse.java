@@ -1,64 +1,47 @@
-package com.sliit.smartcampus.model;
+package com.sliit.smartcampus.dto;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import com.sliit.smartcampus.model.Booking;
+import com.sliit.smartcampus.model.BookingStatus;
 
-@Document(collection = "bookings")
-public class Booking {
+public class BookingResponse {
 
-    @Id
     private String id;
-
-    @Indexed
     private String resourceId;
-
-    @Indexed
     private String userId;
-
-    @Indexed
     private LocalDate date;
-
     private LocalTime startTime;
-
     private LocalTime endTime;
-
     private String purpose;
-
     private Integer expectedAttendees;
-
-    @Indexed
-    private BookingStatus status = BookingStatus.PENDING;
-
+    private BookingStatus status;
     private String reviewReason;
-
     private String reviewedBy;
-
-    @CreatedDate
     private Instant createdAt;
-
-    @LastModifiedDate
     private Instant updatedAt;
 
-    public Booking() {
+    public BookingResponse() {
     }
 
-    public Booking(String resourceId, String userId, LocalDate date, LocalTime startTime, LocalTime endTime,
-            String purpose, Integer expectedAttendees) {
-        this.resourceId = resourceId;
-        this.userId = userId;
-        this.date = date;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.purpose = purpose;
-        this.expectedAttendees = expectedAttendees;
-        this.status = BookingStatus.PENDING;
+    public static BookingResponse fromBooking(Booking booking) {
+        BookingResponse response = new BookingResponse();
+        response.setId(booking.getId());
+        response.setResourceId(booking.getResourceId());
+        response.setUserId(booking.getUserId());
+        response.setDate(booking.getDate());
+        response.setStartTime(booking.getStartTime());
+        response.setEndTime(booking.getEndTime());
+        response.setPurpose(booking.getPurpose());
+        response.setExpectedAttendees(booking.getExpectedAttendees());
+        response.setStatus(booking.getStatus());
+        response.setReviewReason(booking.getReviewReason());
+        response.setReviewedBy(booking.getReviewedBy());
+        response.setCreatedAt(booking.getCreatedAt());
+        response.setUpdatedAt(booking.getUpdatedAt());
+        return response;
     }
 
     public String getId() {
