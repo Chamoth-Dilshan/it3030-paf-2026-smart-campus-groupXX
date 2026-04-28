@@ -1,4 +1,56 @@
-import { createContext } from "react";
+import { createContext, useContext, useState, useEffect } from 'react';
 
-// Placeholder auth context for future login state and role management.
-export const AuthContext = createContext(null);
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Load user from localStorage on app start
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+
+        if (savedToken && savedUser) {
+            setToken(savedToken);
+            setUser(JSON.parse(savedUser));
+        }
+        setLoading(false);
+    }, []);
+
+    const login = (userData, userToken) => {
+        setUser(userData);
+        setToken(userToken);
+        localStorage.setItem('token', userToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+    };
+
+    const logout = () => {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+    };
+
+    const isAdmin = () => user?.role === 'ADMIN';
+    const isManager = () => user?.role === 'MANAGER';
+    const isStudent = () => user?.role === 'USER';
+
+    return (
+        <AuthContext.Provider value={{
+            user,
+            token,
+            loading,
+            login,
+            logout,
+            isAdmin,
+            isManager,
+            isStudent
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => useContext(AuthContext);
