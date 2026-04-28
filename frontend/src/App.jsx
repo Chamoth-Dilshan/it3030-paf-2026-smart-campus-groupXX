@@ -2,8 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
-import BookingFormPage from './pages/BookingFormPage';
-import MyBookingsPage from './pages/MyBookingsPage';
+import BookingFormPage from './features/bookings/pages/BookingFormPage';
+import MyBookingsPage from './features/bookings/pages/MyBookingsPage';
 import MyIncidents from './pages/tickets/MyIncidents';
 import CreateIncident from './pages/tickets/CreateIncident';
 import IncidentDetails from './pages/tickets/IncidentDetails';
@@ -23,7 +23,7 @@ import ResourceList from './pages/admin/ResourceList';
 import ResourceForm from './pages/admin/ResourceForm';
 import ResourceDetails from './pages/admin/ResourceDetails';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
-import AdminBookingPage from './pages/admin/AdminBookingPage';
+import AdminBookingApprovalPage from './features/bookings/pages/AdminBookingApprovalPage';
 import { useAuth } from "./context/AuthContext";
 // Dhanushka's pages (Auth + Notifications)
 import Login from "./pages/Login";
@@ -175,7 +175,7 @@ function App() {
           >
             <Route index element={<Navigate to="resources" />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
-            <Route path="bookings" element={<AdminBookingPage />} />
+            <Route path="bookings" element={<AdminBookingApprovalPage />} />
             <Route path="resources" element={<ResourceList />} />
             <Route path="resources/add" element={<ResourceForm />} />
             <Route path="resources/edit/:id" element={<ResourceForm />} />

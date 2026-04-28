@@ -11,7 +11,8 @@ import {
   AlertCircle,
   FileText
 } from 'lucide-react';
-import bookingService from '../services/bookingService';
+import bookingService from '../features/bookings/services/bookingService';
+import analyticsService from '../services/analyticsService';
 
 const ManagerDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -22,7 +23,7 @@ const ManagerDashboard = () => {
     const fetchManagerData = async () => {
       try {
         const [statsData, bookingsData] = await Promise.all([
-          bookingService.getAnalytics(),
+          analyticsService.getAnalytics(),
           bookingService.getAllBookings()
         ]);
         setAnalytics(statsData);

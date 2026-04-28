@@ -49,7 +49,7 @@ import {
   Scale
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import bookingService from '../services/bookingService';
+import analyticsService from '../services/analyticsService';
 
 const HomePage = () => {
   const [stats, setStats] = useState({ total: 124, approved: 86, pending: 12 });
@@ -70,7 +70,7 @@ const HomePage = () => {
          if (!token) return;
 
       try {
-        const data = await bookingService.getStats();
+        const data = await analyticsService.getStats();
         setStats(data);
       } catch (error) {
         console.error("Error fetching homepage stats:", error);

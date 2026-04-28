@@ -1,0 +1,8 @@
+export const BOOKING_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+});
+
+export const BOOKING_STATUS_FILTERS = ['ALL', ...Object.values(BOOKING_STATUS)];

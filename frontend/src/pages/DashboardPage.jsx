@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Calendar
 } from 'lucide-react';
-import bookingService from '../services/bookingService';
+import analyticsService from '../services/analyticsService';
 
 const DashboardPage = () => {
   const [stats, setStats] = useState({
@@ -25,7 +25,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await bookingService.getStats();
+        const data = await analyticsService.getStats();
         setStats(data);
       } catch (error) {
         console.error("Error fetching stats:", error);

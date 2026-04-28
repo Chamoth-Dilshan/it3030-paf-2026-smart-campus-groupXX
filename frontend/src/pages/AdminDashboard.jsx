@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Check, X, Info, Clock, Search, Filter, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import bookingService from '../services/bookingService';
+import bookingService from '../features/bookings/services/bookingService';
 
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);

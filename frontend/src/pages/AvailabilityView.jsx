@@ -15,7 +15,7 @@ import {
   Lock
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import bookingService from '../services/bookingService';
+import availabilityService from '../services/availabilityService';
 import resourceService from '../services/resourceService';
 import toast from 'react-hot-toast';
 
@@ -56,7 +56,7 @@ const AvailabilityView = () => {
     setLoading(true);
     setHasSearched(true);
     try {
-      const data = await bookingService.getAvailability(resourceId, date);
+      const data = await availabilityService.getAvailability(resourceId, date);
       setAvailability(data);
       toast.success("Synchronized with Registry.");
     } catch (error) {
