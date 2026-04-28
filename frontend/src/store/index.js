@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import incidentsReducer from './incidentsSlice';
+import incidentsReducer from '../features/tickets/services/incidentsSlice';
 
 const store = configureStore({
   reducer: {

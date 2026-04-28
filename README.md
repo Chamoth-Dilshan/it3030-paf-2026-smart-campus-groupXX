@@ -14,15 +14,15 @@ Smart Campus Operations System is a full-stack platform for managing campus reso
 - `frontend/` - React client app
 - `backend/` - Spring Boot API
 - `docs/` - project docs
-- `uploads/` - uploaded assets served by backend
+- `backend/uploads/` - runtime upload folder, created locally and ignored by Git
 
 ## Prerequisites
 
 - Node.js 20.19+ (or 22.12+ recommended)
 - npm 10+
-- Java 21+ (project currently runs on Java 25 in this workspace)
+- Java 17+
 - Maven wrapper (already included as `mvnw.cmd`)
-- MongoDB connection (configured via environment or `application.properties`)
+- MongoDB connection configured through environment variables or `backend/.env`
 
 ## Environment Setup
 
@@ -37,14 +37,15 @@ VITE_BACKEND_URL=http://localhost:8080
 
 ### Backend
 
-You can provide MongoDB URI and server port via environment variables:
+Create `backend/.env` from `backend/.env.example`, or provide the same values as environment variables:
 
 ```powershell
 $env:SPRING_MONGODB_URI="<your_mongodb_uri>"
 $env:SERVER_PORT="8080"
+$env:JWT_SECRET="<long_random_secret>"
 ```
 
-If not provided, backend falls back to values in `backend/src/main/resources/application.properties`.
+Do not commit `backend/.env`; it is intentionally ignored.
 
 ## Run Locally
 

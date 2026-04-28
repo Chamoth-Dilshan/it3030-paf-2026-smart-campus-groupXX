@@ -1,5 +1,10 @@
 HELP.md
 target/
+uploads/
+compile_output.txt
+.env
+.env.*
+!.env.example
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

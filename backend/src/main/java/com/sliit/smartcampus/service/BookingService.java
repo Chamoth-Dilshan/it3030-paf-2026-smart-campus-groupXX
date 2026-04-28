@@ -11,8 +11,8 @@ import com.sliit.smartcampus.exception.booking.InvalidBookingStateException;
 import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
 import com.sliit.smartcampus.repository.BookingRepository;
-import org.example.backend.exceptions.ForbiddenException;
-import org.example.backend.models.Role;
+import com.sliit.smartcampus.exception.common.ForbiddenException;
+import com.sliit.smartcampus.model.Role;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

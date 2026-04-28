@@ -6,7 +6,7 @@ import com.sliit.smartcampus.dto.booking.BookingResponse;
 import com.sliit.smartcampus.dto.booking.BookingReviewRequest;
 import com.sliit.smartcampus.dto.booking.BookingStatusResponse;
 import com.sliit.smartcampus.dto.booking.CreateBookingRequest;
-import org.example.backend.models.Role;
+import com.sliit.smartcampus.model.Role;
 import com.sliit.smartcampus.service.BookingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
