@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   MapPin, 
@@ -8,26 +8,21 @@ import {
   Zap, 
   Users, 
   GraduationCap, 
-  ChevronRight, 
-  Filter,
   Sparkles,
   ArrowLeft,
-  Activity,
-  MoreHorizontal,
-  Calendar,
-  Clock,
-  ShieldCheck
+  Activity
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import resourceService from '../services/resourceService';
 import toast from 'react-hot-toast';
+import ResourceCard from '../components/ResourceCard';
+import ResourceCategoryCard from '../components/ResourceCategoryCard';
+import ResourceDetailsModal from '../components/ResourceDetailsModal';
 
 const ResourcesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
   const CATEGORIES = [
     { id: 'Auditorium', name: "Auditoriums", icon: <Building2 />, desc: "High-capacity venues for symposiums and major events.", img: "https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=1200" },
     { id: 'Laboratory', name: "Labs & Research", icon: <Microscope />, desc: "State-of-the-art facilities for technical and scientific research.", img: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?q=80&w=1200" },
@@ -46,11 +41,7 @@ const ResourcesPage = () => {
   const [selectedResource, setSelectedResource] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchResources();
-  }, [selectedCategory, filters]);
-
-  const fetchResources = async () => {
+  const fetchResources = useCallback(async () => {
     setLoading(true);
     try {
       const activeFilters = { ...filters };
@@ -58,12 +49,16 @@ const ResourcesPage = () => {
       
       const data = await resourceService.getAllResources(activeFilters);
       setResources(data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to retrieve campus assets.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, selectedCategory]);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   const handleSearchChange = (val) => {
     setFilters(prev => ({ ...prev, search: val }));
@@ -108,7 +103,7 @@ const ResourcesPage = () => {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <AnimatePresence mode="wait">
           {!selectedCategory ? (
-            <motion.div
+            <Motion.div
               key="categories"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -144,35 +139,24 @@ const ResourcesPage = () => {
               </div>
 
               {/* Grid */}
-              <motion.div 
+              <Motion.div 
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
                 className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
               >
                 {CATEGORIES.map((cat) => (
-                  <motion.div 
-                    layout
+                  <ResourceCategoryCard
                     key={cat.id}
+                    category={cat}
                     variants={itemVariants}
-                    whileHover={{ y: -10 }}
-                    onClick={() => setSelectedCategory(cat)}
-                    className="p-10 glass-heavy bg-white/70 rounded-[3rem] border border-white transition-all cursor-pointer group hover:bg-slate-900"
-                  >
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-blue-600 mb-8 transition-all group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white shadow-lg">
-                      {cat.icon}
-                    </div>
-                    <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors">{cat.name}</h3>
-                    <p className="text-sm font-medium opacity-60 leading-relaxed mb-8 group-hover:text-white/60 transition-colors">{cat.desc}</p>
-                    <div className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-300 group-hover:border-white/20 group-hover:text-white group-hover:translate-x-2 transition-all">
-                      <ChevronRight size={18} />
-                    </div>
-                  </motion.div>
+                    onSelect={setSelectedCategory}
+                  />
                 ))}
-              </motion.div>
-            </motion.div>
+              </Motion.div>
+            </Motion.div>
           ) : (
-            <motion.div
+            <Motion.div
               key="resources"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -275,81 +259,31 @@ const ResourcesPage = () => {
               {/* Resource Cards */}
               {loading ? (
                 <div className="py-40 text-center">
-                  <motion.div 
+                  <Motion.div 
                     animate={{ rotate: 360 }} 
                     transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
                     className="inline-block p-4 rounded-3xl bg-white shadow-xl"
                   >
                     <Sparkles className="text-blue-600" size={32} />
-                  </motion.div>
+                  </Motion.div>
                   <p className="mt-6 text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Retrieving Resources...</p>
                 </div>
               ) : resources.length > 0 ? (
-                <motion.div 
+                <Motion.div 
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
                   className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
                   {resources.map((resource) => (
-                    <motion.div
+                    <ResourceCard
                       key={resource.id}
+                      resource={resource}
                       variants={itemVariants}
-                      whileHover={{ y: -10 }}
-                      className="group surface-glass rounded-[3rem] border border-white/20 overflow-hidden flex flex-col shadow-xl hover:shadow-blue-500/10 transition-all"
-                    >
-                      <div className="h-64 relative overflow-hidden bg-slate-200">
-                        {resource.imageUrl ? (
-                          <img src={resource.imageUrl} className="w-full h-full object-cover transition-transform duration-[4s] group-hover:scale-110" alt={resource.name} />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400">
-                            <Building2 size={48} />
-                          </div>
-                        )}
-                        <div className="absolute top-6 left-6">
-                           <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/40 shadow-lg ${
-                             resource.status === 'AVAILABLE' ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'
-                           }`}>
-                             {resource.status}
-                           </span>
-                        </div>
-                      </div>
-                      
-                      <div className="p-10 flex-1 flex flex-col">
-                        <div className="flex flex-col mb-6">
-                          <h4 className="text-2xl font-bold text-slate-900 mb-4">{resource.name}</h4>
-                          <div className="flex flex-wrap gap-4">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                               <MapPin size={12} className="text-blue-500" />
-                               {resource.location || "North Wing"}
-                            </div>
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                               <Users size={12} className="text-sky-500" />
-                               Capacity: {resource.capacity}
-                            </div>
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                               <Activity size={12} className="text-rose-500" />
-                               {resource.type || "Room"}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed mb-10 line-clamp-2">
-                          {resource.description || "High-specification academic facility designed for elite performance and research."}
-                        </p>
-                        
-                        <div className="mt-auto text-center">
-                           <button 
-                             onClick={() => setSelectedResource(resource)}
-                             className="w-full inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl active:scale-95"
-                           >
-                              View Brief <ChevronRight size={12} />
-                           </button>
-                        </div>
-                      </div>
-                    </motion.div>
+                      onView={setSelectedResource}
+                    />
                   ))}
-                </motion.div>
+                </Motion.div>
               ) : (
                 <div className="py-40 text-center bg-white/40 rounded-[4rem] border border-dashed border-slate-200">
                    <Users className="mx-auto text-slate-200 mb-6" size={48} />
@@ -357,7 +291,7 @@ const ResourcesPage = () => {
                    <button onClick={() => setSelectedCategory(null)} className="mt-6 text-indigo-600 font-black uppercase tracking-widest text-[10px]">Back to Categories</button>
                 </div>
               )}
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -365,125 +299,18 @@ const ResourcesPage = () => {
       {/* Resource Details Modal */}
       <AnimatePresence>
         {selectedResource && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl bg-white rounded-[4rem] overflow-hidden shadow-2xl flex flex-col md:flex-row relative"
-            >
-              <button 
-                onClick={() => setSelectedResource(null)}
-                className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-slate-900 z-10 hover:bg-white transition-all shadow-xl"
-              >
-                <ArrowLeft className="rotate-90 md:rotate-0" size={18} />
-              </button>
-
-              <div className="md:w-1/2 h-[400px] md:h-auto bg-slate-100">
-                {selectedResource.imageUrl ? (
-                  <img src={selectedResource.imageUrl} className="w-full h-full object-cover" alt={selectedResource.name} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <Building2 size={80} />
-                  </div>
-                )}
-              </div>
-
-              <div className="md:w-1/2 p-12 md:p-20 overflow-y-auto max-h-[90vh]">
-                <div className="flex items-center gap-3 mb-8">
-                  <span className="px-5 py-2 bg-indigo-50 text-indigo-600 text-[10px] font-black tracking-widest uppercase rounded-full border border-indigo-100">
-                    {selectedResource.category}
-                  </span>
-                  <span className={`px-5 py-2 text-white text-[10px] font-black tracking-widest uppercase rounded-full shadow-lg ${
-                    selectedResource.status === 'ACTIVE' || selectedResource.status === 'AVAILABLE' ? 'bg-emerald-500' : 'bg-rose-500'
-                  }`}>
-                    {selectedResource.status}
-                  </span>
-                </div>
-
-                <h2 className="text-5xl font-prestige text-slate-900 mb-8">{selectedResource.name}</h2>
-                
-                <div className="grid md:grid-cols-2 gap-8 mb-12">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                      <MapPin size={20} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
-                      <p className="text-sm font-bold text-slate-900">{selectedResource.location || "Campus North Wing"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                      <Users size={20} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Capacity</p>
-                      <p className="text-sm font-bold text-slate-900">{selectedResource.capacity} Persons</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                      <Activity size={20} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Type</p>
-                      <p className="text-sm font-bold text-slate-900 uppercase tracking-widest">{selectedResource.type || "Official Venue"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                      <ShieldCheck size={20} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Asset Custodian</p>
-                      <p className="text-sm font-bold text-slate-900">{selectedResource.managerName || "Institutional Office"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-lg text-slate-500 font-medium leading-relaxed mb-12">
-                  {selectedResource.description || "A premier institutional asset designed for multifaceted academic operations and high-end collaborative engagements."}
-                </p>
-
-                <div className="flex flex-wrap gap-4">
-                  <button 
-                    onClick={() => {
-                      navigate(`/availability?resourceId=${selectedResource.id}`);
-                      setSelectedResource(null);
-                    }}
-                    className="flex-1 min-w-[200px] h-16 bg-white border-2 border-slate-900 text-slate-900 rounded-3xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-xl active:scale-95"
-                  >
-                    Check Availability
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigate('/bookings', { state: { resourceId: selectedResource.id } });
-                      setSelectedResource(null);
-                    }}
-                    className={`flex-1 min-w-[200px] h-16 font-black text-[11px] uppercase tracking-widest rounded-3xl transition-all shadow-2xl ${
-                      selectedResource.status === 'OUT_OF_SERVICE' 
-                      ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200' 
-                      : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-indigo-500/20 active:scale-95'
-                    }`}
-                    disabled={selectedResource.status === 'OUT_OF_SERVICE'}
-                  >
-                    {selectedResource.status === 'OUT_OF_SERVICE' ? 'Resource Unavailable' : 'Book Now'}
-                  </button>
-                </div>
-                {selectedResource.status === 'OUT_OF_SERVICE' && (
-                  <p className="mt-4 text-center text-rose-500 font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2">
-                    <AlertCircle size={12} /> Institutional Notice: Resource is currently unavailable for synchronization.
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+          <ResourceDetailsModal
+            resource={selectedResource}
+            onClose={() => setSelectedResource(null)}
+            onCheckAvailability={() => {
+              navigate(`/availability?resourceId=${selectedResource.id}`);
+              setSelectedResource(null);
+            }}
+            onBook={() => {
+              navigate('/bookings', { state: { resourceId: selectedResource.id } });
+              setSelectedResource(null);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>
