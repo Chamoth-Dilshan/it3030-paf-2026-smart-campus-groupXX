@@ -1,37 +1,37 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import HomePage from './pages/HomePage';
-import BookingFormPage from './pages/BookingFormPage';
-import MyBookingsPage from './pages/MyBookingsPage';
-import MyIncidents from './pages/tickets/MyIncidents';
-import CreateIncident from './pages/tickets/CreateIncident';
-import IncidentDetails from './pages/tickets/IncidentDetails';
-import UpdateIncident from './pages/tickets/UpdateIncident';
-import TicketList from './pages/tickets/TicketList';
-import TechnicianManagement from './pages/tickets/TechnicianManagement';
-import TechnicianDashboard from './pages/technician/TechnicianDashboard';
-import TechnicianTickets from './pages/technician/TechnicianTickets';
-import TechnicianTicketDetail from './pages/technician/TechnicianTicketDetail';
+import Navbar from './components/common/Navbar';
+import HomePage from './routes/HomePage';
+import BookingFormPage from './features/bookings/pages/BookingFormPage';
+import MyBookingsPage from './features/bookings/pages/MyBookingsPage';
+import MyIncidents from './features/tickets/pages/MyIncidents';
+import CreateIncident from './features/tickets/pages/CreateIncident';
+import IncidentDetails from './features/tickets/pages/IncidentDetails';
+import UpdateIncident from './features/tickets/pages/UpdateIncident';
+import TicketList from './features/tickets/pages/TicketList';
+import TechnicianManagement from './features/tickets/pages/TechnicianManagement';
+import TechnicianDashboard from './features/tickets/pages/TechnicianDashboard';
+import TechnicianTickets from './features/tickets/pages/TechnicianTickets';
+import TechnicianTicketDetail from './features/tickets/pages/TechnicianTicketDetail';
 
-import AvailabilityView from './pages/AvailabilityView';
-import AboutPage from './pages/AboutPage';
-import ResourcesPage from './pages/ResourcesPage';
-import ProtectedRoute from './components/ProtectedRoute';
+import AvailabilityView from './features/resources/pages/AvailabilityView';
+import AboutPage from './routes/AboutPage';
+import ResourcesPage from './features/resources/pages/ResourcesPage';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
-import ResourceList from './pages/admin/ResourceList';
-import ResourceForm from './pages/admin/ResourceForm';
-import ResourceDetails from './pages/admin/ResourceDetails';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
-import AdminBookingPage from './pages/admin/AdminBookingPage';
+import ResourceList from './features/resources/pages/ResourceList';
+import ResourceForm from './features/resources/pages/ResourceForm';
+import ResourceDetails from './features/resources/pages/ResourceDetails';
+import AnalyticsDashboard from './features/bookings/pages/AnalyticsDashboard';
+import AdminBookingApprovalPage from './features/bookings/pages/AdminBookingApprovalPage';
 import { useAuth } from "./context/AuthContext";
 // Dhanushka's pages (Auth + Notifications)
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import UserManagement from "./pages/UserManagement";
-import Notifications from "./pages/Notifications";
-import OAuthSuccess from "./pages/OAuthSuccess";
+import Login from "./features/auth/pages/Login";
+import Register from "./features/auth/pages/Register";
+import Dashboard from "./features/auth/pages/Dashboard";
+import UserManagement from "./features/auth/pages/UserManagement";
+import Notifications from "./features/notifications/pages/Notifications";
+import OAuthSuccess from "./features/auth/pages/OAuthSuccess";
 
 
 function App() {
@@ -175,7 +175,7 @@ function App() {
           >
             <Route index element={<Navigate to="resources" />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
-            <Route path="bookings" element={<AdminBookingPage />} />
+            <Route path="bookings" element={<AdminBookingApprovalPage />} />
             <Route path="resources" element={<ResourceList />} />
             <Route path="resources/add" element={<ResourceForm />} />
             <Route path="resources/edit/:id" element={<ResourceForm />} />

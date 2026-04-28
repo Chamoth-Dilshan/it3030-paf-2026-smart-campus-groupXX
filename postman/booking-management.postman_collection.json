@@ -1,0 +1,192 @@
+{
+  "info": {
+    "_postman_id": "3b80f78a-7d69-4a15-9f40-06cb85c6f001",
+    "name": "Booking Management API",
+    "description": "Postman collection for the Smart Campus Booking Management endpoints. Uses X-User-Id and X-User-Role headers to match the current project auth integration point.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const tomorrow = new Date();",
+          "tomorrow.setDate(tomorrow.getDate() + 1);",
+          "pm.environment.set('bookingDate', tomorrow.toISOString().slice(0, 10));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{userId}}" },
+          { "key": "X-User-Role", "value": "USER" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resourceId\": \"RES-101\",\n  \"date\": \"{{bookingDate}}\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\",\n  \"purpose\": \"Study group discussion\",\n  \"expectedAttendees\": 6\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+              "const response = pm.response.json();",
+              "pm.environment.set('bookingId', response.id);",
+              "pm.test('Booking starts as PENDING', function () { pm.expect(response.status).to.eql('PENDING'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get My Bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{userId}}" },
+          { "key": "X-User-Role", "value": "USER" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "me"]
+        }
+      }
+    },
+    {
+      "name": "Get All Bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{adminId}}" },
+          { "key": "X-User-Role", "value": "ADMIN" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "Get Booking By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{userId}}" },
+          { "key": "X-User-Role", "value": "USER" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Approve Booking",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{adminId}}" },
+          { "key": "X-User-Role", "value": "ADMIN" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "Cancel Approved Booking",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{userId}}" },
+          { "key": "X-User-Role", "value": "USER" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{bookingId}}", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "Create Booking For Rejection",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{userId}}" },
+          { "key": "X-User-Role", "value": "USER" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resourceId\": \"RES-102\",\n  \"date\": \"{{bookingDate}}\",\n  \"startTime\": \"11:00\",\n  \"endTime\": \"12:00\",\n  \"purpose\": \"Workshop preparation\",\n  \"expectedAttendees\": 4\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const response = pm.response.json();",
+              "pm.environment.set('rejectBookingId', response.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject Booking",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" },
+          { "key": "X-User-Id", "value": "{{adminId}}" },
+          { "key": "X-User-Role", "value": "ADMIN" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/bookings/{{rejectBookingId}}/reject",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bookings", "{{rejectBookingId}}", "reject"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Resource is reserved for an academic assessment at this time.\"\n}"
+        }
+      }
+    }
+  ]
+}
