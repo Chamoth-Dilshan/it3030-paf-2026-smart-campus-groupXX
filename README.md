@@ -41,11 +41,13 @@ Create `backend/.env` from `backend/.env.example`, or provide the same values as
 
 ```powershell
 $env:SPRING_MONGODB_URI="<your_mongodb_uri>"
+$env:SPRING_PROFILES_ACTIVE="local"
 $env:SERVER_PORT="8080"
 $env:JWT_SECRET="<long_random_secret>"
 ```
 
 Do not commit `backend/.env`; it is intentionally ignored.
+Use `SPRING_PROFILES_ACTIVE=prod` only for deployed/production environments.
 
 ## Run Locally
 
