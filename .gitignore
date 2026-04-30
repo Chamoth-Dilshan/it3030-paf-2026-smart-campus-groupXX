@@ -33,4 +33,4 @@ replay_pid*
 
 # Uploaded files
 uploads/*
-!uploads/.gitkeep
+!uploads/README.md
