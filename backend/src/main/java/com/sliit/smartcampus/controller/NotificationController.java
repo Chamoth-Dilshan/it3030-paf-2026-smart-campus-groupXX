@@ -18,6 +18,7 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     // GET /api/notifications - Get all my notifications
+    
     @GetMapping
     public ResponseEntity<List<Notification>> getMyNotifications(Authentication authentication) {
         String userId = authentication.getName();
