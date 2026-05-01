@@ -19,6 +19,11 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     List<Booking> findByStatusOrderByCreatedAtDesc(BookingStatus status);
 
+    List<Booking> findByResourceIdAndDateAndStatusInOrderByStartTimeAsc(
+            String resourceId,
+            LocalDate date,
+            Collection<BookingStatus> statuses);
+
     List<Booking> findByResourceIdAndDateAndStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
             String resourceId,
             LocalDate date,

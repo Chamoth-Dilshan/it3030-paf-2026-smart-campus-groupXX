@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -21,6 +23,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -52,19 +57,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        // Encode name safely for URL
-        String encodedName = java.net.URLEncoder.encode(
-            user.getName() != null ? user.getName() : email,
-            "UTF-8"
-        );
-
         // Redirect to frontend with token
-        String redirectUrl = "http://localhost:5173/oauth-success"
-                + "?token=" + token
-                + "&name=" + encodedName
-                + "&email=" + user.getEmail()
-                + "&role=" + user.getRole().name()
-                + "&id=" + (user.getId() != null ? user.getId() : "");
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(frontendUrl.replaceAll("/+$", ""))
+                .path("/oauth-success")
+                .queryParam("token", token)
+                .queryParam("name", user.getName() != null ? user.getName() : email)
+                .queryParam("email", user.getEmail())
+                .queryParam("role", user.getRole().name())
+                .queryParam("id", user.getId() != null ? user.getId() : "")
+                .build()
+                .encode()
+                .toUriString();
 
         response.sendRedirect(redirectUrl);
     }

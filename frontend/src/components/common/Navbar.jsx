@@ -1,6 +1,5 @@
 import React from "react";
-import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
   Home,
   LogOut,
@@ -45,7 +44,7 @@ const UnreadBadge = () => {
       try {
         const res = await getUnreadCount();
         setCount(res.data.unreadCount);
-      } catch (err) {
+      } catch {
         // ignore
       }
     };
@@ -67,7 +66,6 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const location = useLocation();
   const dropdownRef = React.useRef(null);
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
@@ -139,20 +137,19 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
       isScrolled 
-        ? 'surface-glass border-b border-slate-200' 
-        : 'bg-white/50 border-b border-slate-100'
+        ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm' 
+        : 'bg-white/75 backdrop-blur-md border-b border-white/40'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18">
+        <div className="flex items-center justify-between h-16 sm:h-[72px]">
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow"
+            <div
+              className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow"
             >
               <ShieldHalf size={20} className="text-white" />
-            </motion.div>
+            </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-lg font-bold text-slate-900 leading-none">SmartCampus</span>
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Operations</span>
@@ -216,10 +213,7 @@ const Navbar = () => {
 
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+                  <div
                     className="absolute right-0 mt-2 w-56 surface-glass rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden"
                   >
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
@@ -239,7 +233,7 @@ const Navbar = () => {
                       <LogOut size={16} />
                       Sign Out
                     </button>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             ) : (
@@ -260,10 +254,7 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+          <div
             className="lg:hidden border-t border-slate-200 bg-slate-50"
           >
             <div className="px-4 py-3 space-y-1">
@@ -287,7 +278,7 @@ const Navbar = () => {
                 </NavLink>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </nav>

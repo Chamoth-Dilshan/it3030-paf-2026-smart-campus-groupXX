@@ -1,6 +1,7 @@
 package com.sliit.smartcampus.service;
 
 import lombok.RequiredArgsConstructor;
+import com.sliit.smartcampus.dto.booking.AvailabilitySlotResponse;
 import com.sliit.smartcampus.dto.booking.BookingResponse;
 import com.sliit.smartcampus.dto.booking.BookingReviewRequest;
 import com.sliit.smartcampus.dto.booking.BookingStatusResponse;
@@ -8,28 +9,41 @@ import com.sliit.smartcampus.dto.booking.CreateBookingRequest;
 import com.sliit.smartcampus.exception.booking.BookingConflictException;
 import com.sliit.smartcampus.exception.booking.BookingNotFoundException;
 import com.sliit.smartcampus.exception.booking.InvalidBookingStateException;
+import com.sliit.smartcampus.exception.resource.ResourceNotFoundException;
 import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
+import com.sliit.smartcampus.model.Resource;
+import com.sliit.smartcampus.model.ResourceStatus;
 import com.sliit.smartcampus.repository.BookingRepository;
 import com.sliit.smartcampus.exception.common.ForbiddenException;
 import com.sliit.smartcampus.model.Role;
+import com.sliit.smartcampus.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BookingService {
 
+    private static final DateTimeFormatter SLOT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final LocalTime DEFAULT_OPEN_TIME = LocalTime.of(8, 0);
+    private static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(18, 0);
+
     private static final List<BookingStatus> BLOCKING_STATUSES = List.of(
             BookingStatus.PENDING,
             BookingStatus.APPROVED);
 
     private final BookingRepository bookingRepository;
+    private final ResourceRepository resourceRepository;
 
     public BookingResponse createBooking(CreateBookingRequest request, String currentUserId, Role currentUserRole) {
         requireUser(currentUserId, currentUserRole);
@@ -81,6 +95,58 @@ public class BookingService {
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(currentUserId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<AvailabilitySlotResponse> getAvailability(String resourceId, LocalDate date) {
+        if (resourceId == null || resourceId.isBlank()) {
+            throw new InvalidBookingStateException("Resource ID is required.");
+        }
+        if (date == null) {
+            throw new InvalidBookingStateException("Availability date is required.");
+        }
+
+        Resource resource = resourceRepository.findById(resourceId.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + resourceId));
+
+        LocalTime openTime = parseAvailabilityTime(resource.getAvailableTimes(), "start", DEFAULT_OPEN_TIME);
+        LocalTime closeTime = parseAvailabilityTime(resource.getAvailableTimes(), "end", DEFAULT_CLOSE_TIME);
+        if (!openTime.isBefore(closeTime)) {
+            throw new InvalidBookingStateException("Resource availability hours are not configured correctly.");
+        }
+
+        List<Booking> bookings = bookingRepository.findByResourceIdAndDateAndStatusInOrderByStartTimeAsc(
+                resource.getId(),
+                date,
+                BLOCKING_STATUSES);
+
+        boolean operational = isOperational(resource) && isAvailableOnDate(resource, date);
+        List<AvailabilitySlotResponse> slots = new ArrayList<>();
+        LocalTime slotStart = openTime;
+        while (slotStart.isBefore(closeTime)) {
+            LocalTime slotEnd = slotStart.plusHours(1);
+            if (slotEnd.isAfter(closeTime)) {
+                slotEnd = closeTime;
+            }
+
+            LocalTime currentSlotStart = slotStart;
+            LocalTime currentSlotEnd = slotEnd;
+            boolean booked = !operational || bookings.stream()
+                    .anyMatch(booking -> overlaps(
+                            currentSlotStart,
+                            currentSlotEnd,
+                            booking.getStartTime(),
+                            booking.getEndTime()));
+
+            slots.add(AvailabilitySlotResponse.builder()
+                    .startTime(currentSlotStart.format(SLOT_TIME_FORMATTER))
+                    .endTime(currentSlotEnd.format(SLOT_TIME_FORMATTER))
+                    .status(booked ? "BOOKED" : "AVAILABLE")
+                    .build());
+
+            slotStart = slotEnd;
+        }
+
+        return slots;
     }
 
     public BookingResponse getBookingById(String id, String currentUserId, Role currentUserRole) {
@@ -173,6 +239,33 @@ public class BookingService {
 
     private boolean overlaps(LocalTime startTime, LocalTime endTime, LocalTime existingStartTime, LocalTime existingEndTime) {
         return startTime.isBefore(existingEndTime) && endTime.isAfter(existingStartTime);
+    }
+
+    private LocalTime parseAvailabilityTime(Map<String, String> availableTimes, String key, LocalTime fallback) {
+        if (availableTimes == null || availableTimes.get(key) == null || availableTimes.get(key).isBlank()) {
+            return fallback;
+        }
+        try {
+            return LocalTime.parse(availableTimes.get(key).trim());
+        } catch (DateTimeParseException ex) {
+            throw new InvalidBookingStateException("Invalid resource availability time: " + availableTimes.get(key));
+        }
+    }
+
+    private boolean isOperational(Resource resource) {
+        ResourceStatus status = resource.getStatus();
+        return status == null || status == ResourceStatus.ACTIVE || status == ResourceStatus.AVAILABLE;
+    }
+
+    private boolean isAvailableOnDate(Resource resource, LocalDate date) {
+        List<String> availableDays = resource.getAvailableDays();
+        if (availableDays == null || availableDays.isEmpty()) {
+            return true;
+        }
+
+        String day = date.getDayOfWeek().name();
+        return availableDays.stream()
+                .anyMatch(availableDay -> day.equalsIgnoreCase(availableDay));
     }
 
     private Booking findBooking(String id) {

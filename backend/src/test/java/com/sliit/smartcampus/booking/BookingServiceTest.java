@@ -7,7 +7,10 @@ import com.sliit.smartcampus.exception.booking.BookingConflictException;
 import com.sliit.smartcampus.exception.booking.InvalidBookingStateException;
 import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
+import com.sliit.smartcampus.model.Resource;
+import com.sliit.smartcampus.model.ResourceStatus;
 import com.sliit.smartcampus.repository.BookingRepository;
+import com.sliit.smartcampus.repository.ResourceRepository;
 import com.sliit.smartcampus.service.BookingService;
 import com.sliit.smartcampus.model.Role;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,11 +43,14 @@ class BookingServiceTest {
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private ResourceRepository resourceRepository;
+
     private BookingService bookingService;
 
     @BeforeEach
     void setUp() {
-        bookingService = new BookingService(bookingRepository);
+        bookingService = new BookingService(bookingRepository, resourceRepository);
     }
 
     @Test
@@ -163,6 +170,32 @@ class BookingServiceTest {
         verify(bookingRepository, never()).save(any(Booking.class));
     }
 
+    @Test
+    void getAvailabilityMarksOverlappingBlockingBookingsAsBooked() {
+        LocalDate date = LocalDate.of(2026, 5, 1);
+        Resource resource = resource();
+        Booking existing = booking("booking-1", BookingStatus.APPROVED, "other-user");
+        existing.setDate(date);
+        existing.setStartTime(LocalTime.of(9, 0));
+        existing.setEndTime(LocalTime.of(10, 0));
+
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource));
+        when(bookingRepository.findByResourceIdAndDateAndStatusInOrderByStartTimeAsc(
+                eq("RES-101"),
+                eq(date),
+                anyCollection())).thenReturn(List.of(existing));
+
+        var slots = bookingService.getAvailability("RES-101", date);
+
+        assertEquals(3, slots.size());
+        assertEquals("08:00", slots.get(0).getStartTime());
+        assertEquals("AVAILABLE", slots.get(0).getStatus());
+        assertEquals("09:00", slots.get(1).getStartTime());
+        assertEquals("BOOKED", slots.get(1).getStatus());
+        assertEquals("10:00", slots.get(2).getStartTime());
+        assertEquals("AVAILABLE", slots.get(2).getStatus());
+    }
+
     private CreateBookingRequest validRequest() {
         return new CreateBookingRequest(
                 "RES-101",
@@ -187,6 +220,20 @@ class BookingServiceTest {
                 .status(status)
                 .createdAt(now.minusHours(1))
                 .updatedAt(now.minusHours(1))
+                .build();
+    }
+
+    private Resource resource() {
+        return Resource.builder()
+                .id("RES-101")
+                .name("Test Resource")
+                .category("Classroom")
+                .type("room")
+                .location("Main Building")
+                .capacity(25)
+                .status(ResourceStatus.ACTIVE)
+                .availableDays(List.of("FRIDAY"))
+                .availableTimes(Map.of("start", "08:00", "end", "11:00"))
                 .build();
     }
 }
