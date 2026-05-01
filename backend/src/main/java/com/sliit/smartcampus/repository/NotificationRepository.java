@@ -12,3 +12,4 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     List<Notification> findByUserIdAndReadFalse(String userId);
     long countByUserIdAndReadFalse(String userId);
 }
+//kasun akalanka
