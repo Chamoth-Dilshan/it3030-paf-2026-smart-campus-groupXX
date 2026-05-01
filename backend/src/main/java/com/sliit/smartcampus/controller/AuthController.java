@@ -54,3 +54,4 @@ public ResponseEntity<?> createUser(@Valid @RequestBody RegisterRequest request,
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 }
+}
