@@ -12,4 +12,3 @@ public class UserResponse {
     private String role;
     private boolean active;
 }
-//kasun akalanka
