@@ -55,9 +55,9 @@ const Login = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto grid min-h-[calc(100vh-10rem)] max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl lg:grid-cols-[0.95fr_1.05fr]">
-                <section className="relative hidden overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="flex min-h-screen items-center bg-slate-50 px-4 pb-8 pt-24 sm:px-6 lg:px-8">
+            <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl lg:min-h-[660px] lg:grid-cols-[0.92fr_1.08fr] xl:min-h-[700px]">
+                <section className="relative hidden overflow-hidden bg-slate-950 p-9 text-white lg:flex lg:flex-col lg:justify-between">
                     <img
                         src="/campus-life.jpg"
                         alt="Campus operations"
@@ -70,53 +70,56 @@ const Login = () => {
                             <ShieldCheck size={17} className="text-emerald-300" />
                             Secure campus access
                         </div>
-                        <h1 className="mt-8 max-w-md text-5xl font-black leading-tight tracking-normal">
+                        <h1 className="mt-7 max-w-md text-4xl font-black leading-tight tracking-normal xl:text-5xl">
                             Sign in to manage campus work without friction.
                         </h1>
-                        <p className="mt-5 max-w-md text-base font-medium leading-8 text-slate-200">
+                        <p className="mt-4 max-w-md text-base font-medium leading-7 text-slate-200">
                             One account connects resource bookings, incident workflows, and operational dashboards.
                         </p>
                     </div>
 
-                    <div className="relative z-10 grid gap-4">
+                    <div className="relative z-10 grid gap-3">
                         {benefits.map((benefit) => (
-                            <div key={benefit} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                                <CheckCircle2 size={20} className="shrink-0 text-emerald-300" />
+                            <div key={benefit} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-3.5 backdrop-blur">
+                                <CheckCircle2 size={18} className="shrink-0 text-emerald-300" />
                                 <span className="text-sm font-semibold text-slate-100">{benefit}</span>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <section className="flex items-center justify-center p-6 sm:p-10 lg:p-14">
+                <section className="flex items-center justify-center p-5 sm:p-8 lg:p-10 xl:p-12">
                     <div className="w-full max-w-md">
-                        <div className="mb-8">
-                            <Link to="/" className="mb-7 inline-flex items-center gap-3 group">
-                                <span className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary text-white shadow-md transition group-hover:shadow-lg">
-                                    <ShieldCheck size={23} />
-                                </span>
-                                <span>
-                                    <span className="block text-xl font-black leading-none tracking-normal text-slate-950">SmartCampus</span>
-                                    <span className="mt-1 block text-xs font-black uppercase tracking-normal text-blue-700">Operations portal</span>
-                                </span>
-                            </Link>
+                        <div className="mb-6">
+                            <div className="mb-6 flex flex-wrap items-center gap-3">
+                                <Link to="/" className="inline-flex items-center gap-3 group">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary text-white shadow-md transition group-hover:shadow-lg">
+                                        <ShieldCheck size={21} />
+                                    </span>
+                                    <span>
+                                        <span className="block text-xl font-black leading-none tracking-normal text-slate-950">SmartCampus</span>
+                                        <span className="mt-1 block text-xs font-black uppercase tracking-normal text-blue-700">Operations portal</span>
+                                    </span>
+                                </Link>
 
-                            <div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">
-                                <Users size={17} />
-                                Operations center
+                                <span className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">
+                                    <Users size={16} />
+                                    Operations center
+                                </span>
                             </div>
-                            <h2 className="mt-5 text-4xl font-black leading-tight tracking-normal text-slate-950 sm:text-5xl">
+
+                            <h2 className="text-4xl font-black leading-tight tracking-normal text-slate-950">
                                 Welcome back
                             </h2>
-                            <p className="mt-3 text-base font-medium leading-7 text-slate-600">
+                            <p className="mt-2 text-base font-medium leading-7 text-slate-600">
                                 Sign in with Google or your campus account credentials.
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                            <GoogleAuthButton intent="signin" className="!rounded-xl !border-slate-200 !bg-white !py-3.5 !shadow-sm" />
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                            <GoogleAuthButton intent="signin" className="!rounded-xl !border-slate-200 !bg-white !py-3 !shadow-sm" />
 
-                            <div className="my-7 flex items-center gap-4">
+                            <div className="my-5 flex items-center gap-4">
                                 <div className="h-px flex-1 bg-slate-200" />
                                 <span className="text-xs font-bold uppercase tracking-normal text-slate-500">
                                     Or sign in with email
@@ -124,7 +127,7 @@ const Login = () => {
                                 <div className="h-px flex-1 bg-slate-200" />
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label htmlFor="email" className="mb-2 block text-sm font-bold text-slate-800">
                                         Email address
@@ -138,7 +141,7 @@ const Login = () => {
                                             value={formData.email}
                                             onChange={handleChange}
                                             required
-                                            className="!h-12 !rounded-xl !border-slate-300 !bg-white !py-0 !pl-12 !pr-4 !text-base !font-medium !text-slate-950 placeholder:!text-slate-400 focus:!border-blue-500 focus:!bg-white focus:!shadow-sm"
+                                            className="!h-11 !rounded-xl !border-slate-300 !bg-white !py-0 !pl-12 !pr-4 !text-base !font-medium !text-slate-950 placeholder:!text-slate-400 focus:!border-blue-500 focus:!bg-white focus:!shadow-sm"
                                             placeholder="you@example.com"
                                             autoComplete="email"
                                         />
@@ -163,7 +166,7 @@ const Login = () => {
                                             value={formData.password}
                                             onChange={handleChange}
                                             required
-                                            className="!h-12 !rounded-xl !border-slate-300 !bg-white !py-0 !pl-12 !pr-4 !text-base !font-medium !text-slate-950 placeholder:!text-slate-400 focus:!border-blue-500 focus:!bg-white focus:!shadow-sm"
+                                            className="!h-11 !rounded-xl !border-slate-300 !bg-white !py-0 !pl-12 !pr-4 !text-base !font-medium !text-slate-950 placeholder:!text-slate-400 focus:!border-blue-500 focus:!bg-white focus:!shadow-sm"
                                             placeholder="Enter your password"
                                             autoComplete="current-password"
                                         />
@@ -184,7 +187,7 @@ const Login = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="btn-primary min-h-12 w-full rounded-xl text-base font-bold disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="btn-primary min-h-11 w-full rounded-xl text-base font-bold disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {loading ? (
                                         <>
@@ -201,14 +204,14 @@ const Login = () => {
                             </form>
                         </div>
 
-                        <p className="mt-7 text-center text-sm font-medium text-slate-600">
+                        <p className="mt-5 text-center text-sm font-medium text-slate-600">
                             Do not have an account?{' '}
                             <Link to="/register" className="inline-flex items-center gap-1 font-bold text-blue-700 transition hover:text-blue-900">
                                 Create one <ArrowRight size={15} />
                             </Link>
                         </p>
 
-                        <div className="mt-8 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-normal text-slate-400">
+                        <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-normal text-slate-400">
                             <Sparkles size={14} />
                             Certified digital architecture
                         </div>
