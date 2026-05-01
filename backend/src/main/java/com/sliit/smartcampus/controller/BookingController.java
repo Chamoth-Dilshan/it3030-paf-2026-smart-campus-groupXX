@@ -1,6 +1,7 @@
 package com.sliit.smartcampus.controller;
 
 import jakarta.validation.Valid;
+import com.sliit.smartcampus.dto.booking.AvailabilitySlotResponse;
 import lombok.RequiredArgsConstructor;
 import com.sliit.smartcampus.dto.booking.BookingResponse;
 import com.sliit.smartcampus.dto.booking.BookingReviewRequest;
@@ -10,6 +11,7 @@ import com.sliit.smartcampus.model.Role;
 import com.sliit.smartcampus.service.BookingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -59,6 +62,13 @@ public class BookingController {
     public ResponseEntity<List<BookingResponse>> getMyBookings(
             @RequestHeader("X-User-Id") String currentUserId) {
         return ResponseEntity.ok(bookingService.getMyBookings(currentUserId));
+    }
+
+    @GetMapping("/availability")
+    public ResponseEntity<List<AvailabilitySlotResponse>> getAvailability(
+            @RequestParam String resourceId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(bookingService.getAvailability(resourceId, date));
     }
 
     @GetMapping("/{id}")
