@@ -20,3 +20,4 @@ public class NotificationResponse {
     private boolean read;
     private LocalDateTime createdAt;
 }
+//kasun akalanka

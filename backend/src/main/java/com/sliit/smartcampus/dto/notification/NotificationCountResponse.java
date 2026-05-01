@@ -10,3 +10,4 @@ import lombok.NoArgsConstructor;
 public class NotificationCountResponse {
     private long unreadCount;
 }
+//kasun akalanka
