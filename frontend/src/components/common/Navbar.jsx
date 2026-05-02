@@ -84,6 +84,8 @@ const getWorkspaceItems = (role) => {
       return [
         { id: "admin-bookings", path: "/admin/bookings", label: "Admin Bookings", icon: <CalendarCheck size={18} /> },
         { id: "manage-resources", path: "/admin/resources", label: "Manage Resources", icon: <LayoutDashboard size={18} /> },
+        { id: "issue-management", path: "/admin/tickets", label: "Issue Management", icon: <AlertCircle size={18} /> },
+        { id: "technician-management", path: "/admin/technicians", label: "Technicians", icon: <ClipboardList size={18} /> },
         { id: "user-roles", path: "/users", label: "User Roles", icon: <Shield size={18} /> },
         { id: "analytics", path: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
       ];

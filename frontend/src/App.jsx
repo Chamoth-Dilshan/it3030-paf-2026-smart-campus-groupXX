@@ -126,14 +126,14 @@ function App() {
           {/* Ticket List: Admin overview of reported incidents */}
           <Route path="/ticket-list" element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <TicketList />
+              <Navigate to="/admin/tickets" replace />
             </ProtectedRoute>
           } />
 
           {/* Technician Management: Admin manages technician staff */}
           <Route path="/technician-management" element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <TechnicianManagement />
+              <Navigate to="/admin/technicians" replace />
             </ProtectedRoute>
           } />
 
@@ -165,6 +165,30 @@ function App() {
           >
             <Route index element={<Navigate to="resources" />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route
+              path="tickets"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <TicketList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="tickets/:id"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <UpdateIncident />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="technicians"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <TechnicianManagement />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="bookings"
               element={

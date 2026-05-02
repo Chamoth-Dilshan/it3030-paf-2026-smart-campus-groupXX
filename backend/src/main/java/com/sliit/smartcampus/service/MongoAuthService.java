@@ -30,7 +30,7 @@ public class MongoAuthService implements AuthService {
         Role role = Role.USER;
         if (request.getRole() != null) {
             try {
-                role = Role.valueOf(request.getRole().toUpperCase());
+                role = Role.fromValue(request.getRole());
             } catch (IllegalArgumentException e) {
                 // Fallback to USER if invalid role provided
             }
@@ -47,14 +47,14 @@ public class MongoAuthService implements AuthService {
         user.setActive(true);
 
         User savedUser = userRepository.save(user);
-        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().apiName());
 
         return new AuthResponse(
                 token,
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().name()
+                savedUser.getRole().apiName()
         );
     }
 
@@ -71,14 +71,15 @@ public class MongoAuthService implements AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        Role role = user.getRole() != null ? user.getRole().canonical() : Role.USER;
+        String token = jwtUtil.generateToken(user.getEmail(), role.apiName());
 
         return new AuthResponse(
                 token,
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name()
+                role.apiName()
         );
     }
 
@@ -92,21 +93,21 @@ public class MongoAuthService implements AuthService {
                 request.getName(),
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
-                Role.valueOf(role.toUpperCase())
+                Role.fromValue(role)
         );
         
         // 🔥 FIX: Explicitly activate the user here as well
         user.setActive(true);
 
         User savedUser = userRepository.save(user);
-        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().apiName());
 
         return new AuthResponse(
                 token,
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().name()
+                savedUser.getRole().apiName()
         );
     }
 }

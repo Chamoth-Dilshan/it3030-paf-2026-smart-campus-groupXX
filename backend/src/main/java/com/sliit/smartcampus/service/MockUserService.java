@@ -48,7 +48,7 @@ public class MockUserService implements UserService {
                         user.getId(),
                         user.getName(),
                         user.getEmail(),
-                        user.getRole().name(),
+                        user.getRole().apiName(),
                         user.isActive()
                 ))
                 .collect(Collectors.toList());
@@ -62,7 +62,7 @@ public class MockUserService implements UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole().apiName(),
                 user.isActive()
         );
     }
@@ -71,12 +71,12 @@ public class MockUserService implements UserService {
     public UserResponse updateUserRole(String id, String role) {
         User user = mockUsers.stream().filter(u -> u.getId().equals(id)).findFirst()
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRole(Role.valueOf(role.toUpperCase()));
+        user.setRole(Role.fromValue(role));
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole().apiName(),
                 user.isActive()
         );
     }
@@ -95,7 +95,7 @@ public class MockUserService implements UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole().apiName(),
                 user.isActive()
         );
     }

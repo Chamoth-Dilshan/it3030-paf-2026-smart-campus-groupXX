@@ -14,10 +14,12 @@ import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
 import com.sliit.smartcampus.model.Resource;
 import com.sliit.smartcampus.model.ResourceStatus;
+import com.sliit.smartcampus.model.User;
 import com.sliit.smartcampus.repository.BookingRepository;
 import com.sliit.smartcampus.exception.common.ForbiddenException;
 import com.sliit.smartcampus.model.Role;
 import com.sliit.smartcampus.repository.ResourceRepository;
+import com.sliit.smartcampus.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -47,6 +49,8 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public BookingResponse createBooking(CreateBookingRequest request, String currentUserId, Role currentUserRole) {
         requireUser(currentUserId, currentUserRole);
@@ -81,7 +85,9 @@ public class BookingService {
                 .updatedAt(now)
                 .build();
 
-        return toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        notifyAdminsAboutPendingBooking(saved, resource.getName());
+        return toResponse(saved, resource.getName());
     }
 
     public BookingResponse updateBooking(String id, CreateBookingRequest request, String currentUserId, Role currentUserRole) {
@@ -223,7 +229,9 @@ public class BookingService {
         booking.setReviewedBy(currentUserId);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        return toStatusResponse(bookingRepository.save(booking), "Booking approved successfully.");
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingOwner(saved, "Booking approved", "Your booking for %s on %s from %s to %s was approved.");
+        return toStatusResponse(saved, "Booking approved successfully.");
     }
 
     public BookingStatusResponse rejectBooking(String id, BookingReviewRequest request, String currentUserId, Role currentUserRole) {
@@ -236,7 +244,9 @@ public class BookingService {
         booking.setReviewedBy(currentUserId);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        return toStatusResponse(bookingRepository.save(booking), "Booking rejected successfully.");
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingOwner(saved, "Booking rejected", "Your booking for %s on %s from %s to %s was rejected.");
+        return toStatusResponse(saved, "Booking rejected successfully.");
     }
 
     public BookingStatusResponse cancelBooking(String id, String currentUserId, Role currentUserRole) {
@@ -253,7 +263,9 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setUpdatedAt(LocalDateTime.now());
 
-        return toStatusResponse(bookingRepository.save(booking), "Booking cancelled successfully.");
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingOwner(saved, "Booking cancelled", "Your booking for %s on %s from %s to %s was cancelled.");
+        return toStatusResponse(saved, "Booking cancelled successfully.");
     }
 
     private void validateTimeRange(LocalDate date, LocalTime startTime, LocalTime endTime) {
@@ -475,5 +487,47 @@ public class BookingService {
                 .updatedAt(booking.getUpdatedAt())
                 .message(message)
                 .build();
+    }
+
+    private void notifyBookingOwner(Booking booking, String title, String messageTemplate) {
+        String resourceName = resolveResourceName(booking.getResourceId());
+        if (resourceName == null || resourceName.isBlank()) {
+            resourceName = "selected resource";
+        }
+        String message = String.format(
+                messageTemplate,
+                resourceName,
+                booking.getDate(),
+                booking.getStartTime(),
+                booking.getEndTime());
+        notificationService.createNotification(booking.getUserId(), title, message, "BOOKING");
+    }
+
+    private void notifyAdminsAboutPendingBooking(Booking booking, String resourceName) {
+        List<User> admins = userRepository.findByRole(Role.ADMIN);
+        if (admins == null || admins.isEmpty()) {
+            return;
+        }
+
+        String displayResourceName = resourceName;
+        if (displayResourceName == null || displayResourceName.isBlank()) {
+            displayResourceName = "selected resource";
+        }
+        String message = String.format(
+                "A new booking for %s on %s from %s to %s is awaiting approval.",
+                displayResourceName,
+                booking.getDate(),
+                booking.getStartTime(),
+                booking.getEndTime());
+
+        admins.stream()
+                .filter(admin -> admin != null && admin.isActive())
+                .map(User::getId)
+                .filter(adminId -> adminId != null && !adminId.isBlank())
+                .forEach(adminId -> notificationService.createNotification(
+                        adminId,
+                        "New booking awaiting approval",
+                        message,
+                        "BOOKING"));
     }
 }

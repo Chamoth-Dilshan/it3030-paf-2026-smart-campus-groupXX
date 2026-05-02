@@ -147,7 +147,7 @@ public class BookingController {
             }
             String normalized = value.startsWith("ROLE_") ? value.substring("ROLE_".length()) : value;
             try {
-                return Role.valueOf(normalized.trim().toUpperCase());
+                return Role.fromValue(normalized).canonical();
             } catch (IllegalArgumentException ignored) {
                 // Continue looking for a recognized application role.
             }

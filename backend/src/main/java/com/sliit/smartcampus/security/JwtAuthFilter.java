@@ -1,5 +1,6 @@
 package com.sliit.smartcampus.security;
 
+import com.sliit.smartcampus.model.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (token.startsWith("mock-token-")) {
                 // Developer Bypass: Handle fast local logins without signing real JWTs
-                String role = token.substring("mock-token-".length()).toUpperCase(); // Extract MANAGER, ADMIN, USER
+                String role = normalizeRole(token.substring("mock-token-".length())); // Extract MANAGER, ADMIN, USER
                 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -46,7 +47,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 
             } else if (jwtUtil.isTokenValid(token)) {
                 String email = jwtUtil.extractEmail(token);
-                String role = jwtUtil.extractRole(token);
+                String role = normalizeRole(jwtUtil.extractRole(token));
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -60,6 +61,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String normalizeRole(String role) {
+        return Role.fromValue(role).apiName();
     }
 
     private String mockEmailForRole(String role) {

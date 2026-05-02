@@ -8,6 +8,7 @@ import com.sliit.smartcampus.repository.BookingRepository;
 import com.sliit.smartcampus.repository.ResourceRepository;
 import com.sliit.smartcampus.repository.UserRepository;
 import com.sliit.smartcampus.service.BookingService;
+import com.sliit.smartcampus.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,11 +41,18 @@ class BookingControllerTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        BookingService bookingService = new BookingService(bookingRepository, resourceRepository);
+        BookingService bookingService = new BookingService(
+                bookingRepository,
+                resourceRepository,
+                notificationService,
+                userRepository);
         BookingController bookingController = new BookingController(bookingService, userRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(bookingController)
                 .setControllerAdvice(new GlobalExceptionHandler())

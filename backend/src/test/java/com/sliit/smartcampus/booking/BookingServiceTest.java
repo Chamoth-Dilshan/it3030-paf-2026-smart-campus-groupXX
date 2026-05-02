@@ -10,9 +10,12 @@ import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
 import com.sliit.smartcampus.model.Resource;
 import com.sliit.smartcampus.model.ResourceStatus;
+import com.sliit.smartcampus.model.User;
 import com.sliit.smartcampus.repository.BookingRepository;
 import com.sliit.smartcampus.repository.ResourceRepository;
+import com.sliit.smartcampus.repository.UserRepository;
 import com.sliit.smartcampus.service.BookingService;
+import com.sliit.smartcampus.service.NotificationService;
 import com.sliit.smartcampus.model.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,11 +50,17 @@ class BookingServiceTest {
     @Mock
     private ResourceRepository resourceRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private UserRepository userRepository;
+
     private BookingService bookingService;
 
     @BeforeEach
     void setUp() {
-        bookingService = new BookingService(bookingRepository, resourceRepository);
+        bookingService = new BookingService(bookingRepository, resourceRepository, notificationService, userRepository);
     }
 
     @Test
@@ -69,6 +78,7 @@ class BookingServiceTest {
             return booking;
         });
         when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+        when(userRepository.findByRole(Role.ADMIN)).thenReturn(List.of(activeAdmin("admin-1")));
 
         var response = bookingService.createBooking(request, "user-1", Role.USER);
 
@@ -81,6 +91,11 @@ class BookingServiceTest {
         verify(bookingRepository).save(captor.capture());
         assertEquals("user-1", captor.getValue().getUserId());
         assertEquals(BookingStatus.PENDING, captor.getValue().getStatus());
+        verify(notificationService).createNotification(
+                eq("admin-1"),
+                eq("New booking awaiting approval"),
+                eq("A new booking for Test Resource on " + request.getDate() + " from 09:00 to 11:00 is awaiting approval."),
+                eq("BOOKING"));
     }
 
     @Test
@@ -214,12 +229,18 @@ class BookingServiceTest {
 
         assertEquals(BookingStatus.APPROVED, response.getStatus());
         assertEquals("admin-1", response.getReviewedBy());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking approved"),
+                eq("Your booking for Test Resource on " + pending.getDate() + " from 09:00 to 11:00 was approved."),
+                eq("BOOKING"));
     }
 
     @Test
     void rejectBookingMovesPendingToRejectedWithReason() {
         Booking pending = booking("booking-1", BookingStatus.PENDING, "user-1");
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(pending));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingStatusResponse response = bookingService.rejectBooking(
@@ -231,6 +252,11 @@ class BookingServiceTest {
         assertEquals(BookingStatus.REJECTED, response.getStatus());
         assertEquals("Resource unavailable", response.getReviewReason());
         assertEquals("admin-1", response.getReviewedBy());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking rejected"),
+                eq("Your booking for Test Resource on " + pending.getDate() + " from 09:00 to 11:00 was rejected."),
+                eq("BOOKING"));
     }
 
     @Test
@@ -278,11 +304,17 @@ class BookingServiceTest {
     void cancelBookingOnlyAllowsApprovedBookings() {
         Booking approved = booking("booking-1", BookingStatus.APPROVED, "user-1");
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(approved));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingStatusResponse response = bookingService.cancelBooking("booking-1", "user-1", Role.USER);
 
         assertEquals(BookingStatus.CANCELLED, response.getStatus());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking cancelled"),
+                eq("Your booking for Test Resource on " + approved.getDate() + " from 09:00 to 11:00 was cancelled."),
+                eq("BOOKING"));
     }
 
     @Test
@@ -399,6 +431,16 @@ class BookingServiceTest {
                 .status(ResourceStatus.ACTIVE)
                 .availableDays(null)
                 .availableTimes(Map.of("start", "08:00", "end", "11:00"))
+                .build();
+    }
+
+    private User activeAdmin(String id) {
+        return User.builder()
+                .id(id)
+                .name("Admin User")
+                .email(id + "@campus.edu")
+                .role(Role.ADMIN)
+                .active(true)
                 .build();
     }
 }

@@ -199,7 +199,7 @@ const UpdateIncident = () => {
     setSubmitting(true);
     try {
       await API.put(`/incidents/${id}`, payload);
-      navigate('/ticket-list');
+      navigate('/admin/tickets');
     } catch (error) {
       console.error('Update failed', error);
       const statusCode = error?.response?.status;
@@ -271,7 +271,7 @@ const UpdateIncident = () => {
       <div className="text-center">
         <AlertCircle size={40} className="mx-auto text-rose-400 mb-3" />
         <p className="text-rose-600 font-black">{loadError}</p>
-        <Link to="/ticket-list" className="mt-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold text-sm">
+        <Link to="/admin/tickets" className="mt-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold text-sm">
           <ArrowLeft size={14} /> Back to Tickets
         </Link>
       </div>
@@ -297,7 +297,7 @@ const UpdateIncident = () => {
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2 text-white/70 text-xs font-black uppercase tracking-widest mb-6"
           >
-            <Link to="/ticket-list" className="hover:text-white transition flex items-center gap-1.5">
+            <Link to="/admin/tickets" className="hover:text-white transition flex items-center gap-1.5">
               <ArrowLeft size={13} /> Back to Tickets
             </Link>
             <ChevronRight size={12} />

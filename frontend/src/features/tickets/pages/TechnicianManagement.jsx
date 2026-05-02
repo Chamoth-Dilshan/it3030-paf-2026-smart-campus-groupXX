@@ -102,11 +102,11 @@ const TechnicianManagement = () => {
             Refresh
           </button>
           <Link
-            to="/admin"
+            to="/admin/tickets"
             className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all font-black text-xs uppercase tracking-widest shadow-sm"
           >
             <ArrowLeft size={16} />
-            Back to Dashboard
+            Back to Issues
           </Link>
         </div>
       </div>
