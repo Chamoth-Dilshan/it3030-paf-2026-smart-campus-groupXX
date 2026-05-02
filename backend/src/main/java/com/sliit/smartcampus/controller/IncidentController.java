@@ -2,6 +2,7 @@ package com.sliit.smartcampus.controller;
 
 import com.sliit.smartcampus.model.Incident;
 import com.sliit.smartcampus.repository.IncidentRepository;
+import com.sliit.smartcampus.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,9 @@ public class IncidentController {
 
     @Autowired
     private IncidentRepository incidentRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // 1. Create a new incident (For standard users / Create Incident Page)
     @PostMapping
@@ -123,6 +127,8 @@ public class IncidentController {
 
         if (existingIncident.isPresent()) {
             Incident incident = existingIncident.get();
+            String previousStatus = incident.getStatus();
+            int previousRemarksCount = incident.getRemarksHistory() == null ? 0 : incident.getRemarksHistory().size();
             if (updatedIncident.getStatus() != null) {
                 incident.setStatus(updatedIncident.getStatus());
             }
@@ -148,8 +154,39 @@ public class IncidentController {
                 incident.setRejectionReason(updatedIncident.getRejectionReason());
             }
 
-            return incidentRepository.save(incident);
+            Incident saved = incidentRepository.save(incident);
+            sendIncidentUpdateNotifications(previousStatus, previousRemarksCount, saved);
+            return saved;
         }
         return null;
+    }
+
+    private void sendIncidentUpdateNotifications(String previousStatus, int previousRemarksCount, Incident after) {
+        if (after.getEmail() == null || after.getEmail().isBlank()) {
+            return;
+        }
+
+        String ticketLabel = after.getReferenceId() != null && !after.getReferenceId().isBlank()
+                ? after.getReferenceId()
+                : after.getId();
+
+        if (previousStatus != null
+                && after.getStatus() != null
+                && !previousStatus.equalsIgnoreCase(after.getStatus())) {
+            notificationService.createNotification(
+                    after.getEmail(),
+                    "Ticket status changed",
+                    "Your ticket " + ticketLabel + " status changed to " + after.getStatus() + ".",
+                    "TICKET");
+        }
+
+        int newRemarks = after.getRemarksHistory() == null ? 0 : after.getRemarksHistory().size();
+        if (newRemarks > previousRemarksCount) {
+            notificationService.createNotification(
+                    after.getEmail(),
+                    "New ticket comment",
+                    "A new comment was added to your ticket " + ticketLabel + ".",
+                    "TICKET");
+        }
     }
 }

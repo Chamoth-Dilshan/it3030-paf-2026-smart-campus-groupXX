@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import {
   getAllUsers,
   updateUserRole,
@@ -7,7 +6,6 @@ import {
   deactivateUser,
   createUser,
 } from "../../../services/api";
-import { useAuth } from "../../../context/AuthContext";
 import toast from "react-hot-toast";
 
 const UserManagement = () => {
@@ -21,8 +19,6 @@ const UserManagement = () => {
     role: "USER",
   });
   const [addLoading, setAddLoading] = useState(false);
-  const { logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -94,11 +90,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   const getRoleBadgeColor = (role) => {
     switch (role) {
       case "ADMIN":
@@ -113,31 +104,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">Smart Campus</h1>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/dashboard"
-            className="text-gray-600 hover:text-blue-600 font-medium"
-          >
-            🏠 Dashboard
-          </Link>
-          <Link
-            to="/notifications"
-            className="text-gray-600 hover:text-blue-600 font-medium"
-          >
-            🔔 Notifications
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-100 pt-24">
 
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}

@@ -3,6 +3,7 @@ package com.sliit.smartcampus.model;
 public enum Role {
     USER,
     STUDENT,
+    STAFF,
     ADMIN,
     TECHNICIAN,
     MANAGER;
@@ -13,7 +14,7 @@ public enum Role {
         }
 
         String normalized = value.trim().toUpperCase();
-        if ("STUDENT".equals(normalized)) {
+        if ("STUDENT".equals(normalized) || "STAFF".equals(normalized)) {
             return USER;
         }
 
@@ -21,7 +22,7 @@ public enum Role {
     }
 
     public Role canonical() {
-        return this == STUDENT ? USER : this;
+        return this == STUDENT || this == STAFF ? USER : this;
     }
 
     public String apiName() {

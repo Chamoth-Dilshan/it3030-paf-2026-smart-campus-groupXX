@@ -30,7 +30,7 @@ Shared frontend code stays outside feature folders:
 
 - `components/common`: shared UI used across modules, such as navigation and protected routes.
 - `layouts`: page layouts such as the admin layout.
-- `routes`: general public pages such as home and about.
+- `routes`: general public pages such as home.
 - `services/api.js`: common Axios API client.
 - `context`: app-wide context such as authentication state.
 

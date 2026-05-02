@@ -83,7 +83,7 @@ public class UserController {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole() != null ? user.getRole().name() : null,
+                user.getRole() != null ? user.getRole().apiName() : null,
                 user.isActive());
     }
 }

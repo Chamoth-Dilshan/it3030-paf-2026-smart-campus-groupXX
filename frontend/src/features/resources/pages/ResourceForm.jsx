@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Upload, Save, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Upload, Save, Loader2, Image as ImageIcon, X } from 'lucide-react';
 import API from '../../../services/api';
 import toast from 'react-hot-toast';
 
-const TYPES = ['ROOM', 'HALL', 'PROJECTOR', 'CAMERA', 'INDOOR', 'OUTDOOR'];
-const CATEGORIES = ['Auditorium', 'Laboratory', 'Classroom', 'Sports', 'Equipment'];
+const TYPES = ['ROOM', 'HALL', 'PROJECTOR', 'CAMERA', 'INDOOR', 'OUTDOOR', 'STUDY_SPACE', 'STUDIO'];
+const CATEGORIES = ['Auditorium', 'Laboratory', 'Classroom', 'Sports', 'Equipment', 'Meeting Room', 'Library', 'Media Studio'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const STATUS_OPTIONS = ['ACTIVE', 'OUT_OF_SERVICE'];
 
@@ -149,8 +149,8 @@ const ResourceForm = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 text-slate-400">
-        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-6" />
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-5" />
         <span className="text-xs font-black uppercase tracking-[0.3em]">Loading Asset Data...</span>
       </div>
     );
@@ -159,7 +159,7 @@ const ResourceForm = () => {
   return (
     <div className="max-w-6xl mx-auto pb-20">
       {/* Sticky Action Header */}
-      <div className="sticky top-24 z-[30] bg-slate-50/80 backdrop-blur-md py-6 mb-8 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+      <div className="sticky top-24 z-[30] bg-slate-50/80 backdrop-blur-md py-4 mb-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
         <div>
           <button
             onClick={() => navigate('/admin/resources')}
@@ -168,23 +168,23 @@ const ResourceForm = () => {
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back to Asset Matrix
           </button>
-          <h2 className="text-4xl font-prestige text-slate-900">
+          <h2 className="text-3xl font-black tracking-normal text-slate-900">
             {isEdit ? 'Asset Synchronization.' : 'New Resource Protocol.'}
           </h2>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button 
             type="button" 
             onClick={() => navigate('/admin/resources')} 
-            className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200"
+            className="px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200"
           >
             Discard
           </button>
           <button 
             onClick={handleSubmit}
             disabled={saving} 
-            className="inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl shadow-slate-900/10 disabled:opacity-50 active:scale-95 group"
+            className="inline-flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-slate-900/10 disabled:opacity-50 active:scale-95 group"
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saving ? 'Processing...' : isEdit ? 'Update Registry' : 'Commit to Registry'}
@@ -192,11 +192,11 @@ const ResourceForm = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form Body */}
-        <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
           {error && (
-            <div className="p-6 bg-rose-50 border border-rose-100 rounded-3xl text-sm font-bold text-rose-600 flex items-start gap-4 shadow-sm animate-shake">
+            <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-sm font-bold text-rose-600 flex items-start gap-4 shadow-sm animate-shake">
                <AlertCircle size={20} className="flex-shrink-0" />
                <div>
                  <p className="font-black uppercase tracking-widest text-[10px] mb-1">Registry Exception Detected</p>
@@ -206,8 +206,8 @@ const ResourceForm = () => {
           )}
 
           {/* Section: Core Identity */}
-          <section className="bg-white rounded-[3rem] border border-slate-200 shadow-xl p-10 space-y-8">
-            <div className="border-b border-slate-50 pb-6 mb-6">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 sm:p-6 space-y-5">
+            <div className="border-b border-slate-50 pb-4 mb-4">
               <h4 className="text-lg font-bold text-slate-900 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                   <Save size={16} />
@@ -216,7 +216,7 @@ const ResourceForm = () => {
               </h4>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asset Nomenclature *</label>
                 <input
@@ -226,7 +226,7 @@ const ResourceForm = () => {
                   onChange={handleChange}
                   placeholder="e.g. Grand Auditorium A1"
                   required
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner"
                 />
               </div>
 
@@ -238,15 +238,15 @@ const ResourceForm = () => {
                   onChange={handleChange} 
                   rows={5} 
                   placeholder="Provide a formal description of the facility's purpose and capabilities..."
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all resize-none shadow-inner" 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all resize-none shadow-inner" 
                 />
               </div>
             </div>
           </section>
 
           {/* Section: Categorization & Location */}
-          <section className="bg-white rounded-[3rem] border border-slate-200 shadow-xl p-10 space-y-8">
-            <div className="border-b border-slate-50 pb-6 mb-6">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 sm:p-6 space-y-5">
+            <div className="border-b border-slate-50 pb-4 mb-4">
               <h4 className="text-lg font-bold text-slate-900 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
                   <ImageIcon size={16} />
@@ -255,10 +255,10 @@ const ResourceForm = () => {
               </h4>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Functional Category *</label>
-                <select name="category" value={form.category} onChange={handleChange} required className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white outline-none appearance-none cursor-pointer shadow-inner">
+                <select name="category" value={form.category} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white outline-none appearance-none cursor-pointer shadow-inner">
                   <option value="">Select Category</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -273,15 +273,15 @@ const ResourceForm = () => {
                   onChange={handleChange} 
                   placeholder="e.g. North Campus, Bldg 4"
                   required 
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner" 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner" 
                 />
               </div>
             </div>
           </section>
 
           {/* Section: Operational Capacity */}
-          <section className="bg-white rounded-[3rem] border border-slate-200 shadow-xl p-10 space-y-8">
-            <div className="border-b border-slate-50 pb-6 mb-6">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 sm:p-6 space-y-5">
+            <div className="border-b border-slate-50 pb-4 mb-4">
               <h4 className="text-lg font-bold text-slate-900 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <Save size={16} />
@@ -290,10 +290,10 @@ const ResourceForm = () => {
               </h4>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asset Type *</label>
-                <select name="type" value={form.type} onChange={handleChange} required className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white outline-none appearance-none cursor-pointer shadow-inner">
+                <select name="type" value={form.type} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white outline-none appearance-none cursor-pointer shadow-inner">
                   <option value="">Select Type</option>
                   {TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
                 </select>
@@ -307,7 +307,7 @@ const ResourceForm = () => {
                   value={form.capacity} 
                   onChange={handleChange} 
                   min="1" 
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner" 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-400 outline-none transition-all shadow-inner" 
                 />
               </div>
             </div>
@@ -315,12 +315,12 @@ const ResourceForm = () => {
         </div>
 
         {/* Sidebar Controls */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Status & Custodian Card */}
-          <div className="bg-slate-900 rounded-[3rem] p-8 text-white shadow-2xl">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 border-b border-white/10 pb-4">Lifecycle Control</h4>
+          <div className="bg-slate-900 rounded-2xl p-5 sm:p-6 text-white shadow-xl">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-5 border-b border-white/10 pb-4">Lifecycle Control</h4>
             
-            <div className="space-y-8">
+            <div className="space-y-5">
               <div className="space-y-3">
                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Resource Status</label>
                 <div className="grid grid-cols-1 gap-2">
@@ -329,7 +329,7 @@ const ResourceForm = () => {
                       key={s}
                       type="button"
                       onClick={() => setForm(prev => ({ ...prev, status: s }))}
-                      className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${
                         form.status === s 
                         ? 'bg-indigo-600 text-white shadow-lg' 
                         : 'bg-white/5 text-slate-400 hover:bg-white/10'
@@ -348,7 +348,7 @@ const ResourceForm = () => {
                   name="managerId" 
                   value={form.managerId || ''} 
                   onChange={handleChange} 
-                  className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold text-white outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all shadow-inner"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all shadow-inner"
                 >
                   <option value="" className="text-slate-900">Unassigned</option>
                   {managers.map(m => <option key={m.id} value={m.id} className="text-slate-900">{m.username || m.name}</option>)}
@@ -359,12 +359,12 @@ const ResourceForm = () => {
           </div>
 
           {/* Visualization synchronization */}
-          <div className="bg-white rounded-[3rem] border border-slate-200 shadow-xl p-8 space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 sm:p-6 space-y-5">
              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-4">Graphical Reference</h4>
              
              <div className="relative group">
                {previewUrl ? (
-                 <div className="relative rounded-3xl overflow-hidden border border-slate-100 aspect-square bg-slate-50">
+                 <div className="relative rounded-2xl overflow-hidden border border-slate-100 aspect-square bg-slate-50">
                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                      <button 
@@ -377,8 +377,8 @@ const ResourceForm = () => {
                    </div>
                  </div>
                ) : (
-                 <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/50 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer group shadow-inner">
-                    <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-indigo-400 mb-4 transition-colors">
+                 <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/50 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer group shadow-inner">
+                    <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-indigo-400 mb-4 transition-colors">
                       <Upload size={24} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-600">Sync Reference</span>

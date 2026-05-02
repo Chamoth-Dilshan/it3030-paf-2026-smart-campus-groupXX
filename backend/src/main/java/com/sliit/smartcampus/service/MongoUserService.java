@@ -26,7 +26,7 @@ public class MongoUserService implements UserService {
                         user.getId(),
                         user.getName(),
                         user.getEmail(),
-                        user.getRole().name(),
+                        user.getRole() != null ? user.getRole().apiName() : null,
                         user.isActive()
                 ))
                 .collect(Collectors.toList());
@@ -40,7 +40,7 @@ public class MongoUserService implements UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole() != null ? user.getRole().apiName() : null,
                 user.isActive()
         );
     }
@@ -49,13 +49,13 @@ public class MongoUserService implements UserService {
     public UserResponse updateUserRole(String id, String role) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRole(Role.valueOf(role.toUpperCase()));
+        user.setRole(Role.fromValue(role));
         User updatedUser = userRepository.save(user);
         return new UserResponse(
                 updatedUser.getId(),
                 updatedUser.getName(),
                 updatedUser.getEmail(),
-                updatedUser.getRole().name(),
+                updatedUser.getRole() != null ? updatedUser.getRole().apiName() : null,
                 updatedUser.isActive()
         );
     }
@@ -77,7 +77,7 @@ public class MongoUserService implements UserService {
                 updatedUser.getId(),
                 updatedUser.getName(),
                 updatedUser.getEmail(),
-                updatedUser.getRole().name(),
+                updatedUser.getRole() != null ? updatedUser.getRole().apiName() : null,
                 updatedUser.isActive()
         );
     }
@@ -86,7 +86,7 @@ public class MongoUserService implements UserService {
     public List<User> getManagers() {
         return userRepository.findAll()
                 .stream()
-                .filter(user -> user.getRole() != null && user.getRole().name().equals("MANAGER"))
+                .filter(user -> user.getRole() != null && user.getRole().canonical() == Role.MANAGER)
                 .collect(Collectors.toList());
     }
 

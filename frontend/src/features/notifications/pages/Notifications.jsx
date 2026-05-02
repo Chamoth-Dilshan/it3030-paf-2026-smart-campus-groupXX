@@ -62,7 +62,7 @@ const Notifications = () => {
     const unreadCount = notifications.filter(n => !n.read).length;
 
     return (
-        <div className="bg-slate-50 min-h-screen pt-40 pb-32 px-6 relative overflow-hidden">
+        <div className="bg-slate-50 min-h-screen pt-24 pb-16 px-4 sm:px-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-slate-50/20 backdrop-blur-[1px] pointer-events-none" />
             
             {/* Vibrant Interior Background Overlay */}
@@ -78,25 +78,25 @@ const Notifications = () => {
 
             <div className="max-w-4xl mx-auto relative z-10">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                     <div>
-                        <Link to="/dashboard" className="inline-flex items-center gap-2 text-indigo-600 font-black tracking-widest uppercase text-[10px] mb-8 hover:gap-3 transition-all">
+                        <Link to="/dashboard" className="inline-flex items-center gap-2 text-indigo-600 font-black tracking-widest uppercase text-[10px] mb-4 hover:gap-3 transition-all">
                             <ArrowLeft size={14} /> Back to Nexus
                         </Link>
                         <Motion.h1 
                             initial={{ opacity: 0, x: -30 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="text-7xl font-prestige text-slate-900 leading-tight"
+                            className="text-4xl font-black tracking-normal text-slate-900 leading-tight sm:text-5xl"
                         >
                             Signal Feed.
                         </Motion.h1>
-                        <p className="text-xl text-slate-500 font-medium mt-4">Real-time institutional alerts and operational updates.</p>
+                        <p className="text-base text-slate-500 font-medium mt-3">Real-time institutional alerts and operational updates.</p>
                     </div>
 
                     {unreadCount > 0 && (
                         <button
                             onClick={handleMarkAllAsRead}
-                            className="flex items-center gap-3 px-8 py-4 bg-white border border-white rounded-[2rem] text-slate-900 hover:bg-slate-50 transition-all font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200/50 group"
+                            className="flex items-center gap-3 px-5 py-3 bg-white border border-white rounded-xl text-slate-900 hover:bg-slate-50 transition-all font-black text-[11px] uppercase tracking-widest shadow-sm group"
                         >
                             <CheckSquare size={18} className="text-indigo-600 group-hover:scale-110 transition-transform" />
                             Acknowledge All
@@ -105,14 +105,14 @@ const Notifications = () => {
                 </div>
 
                 {loading ? (
-                    <div className="py-40 flex flex-col items-center justify-center text-center">
-                        <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-8 shadow-inner"></div>
+                    <div className="py-20 flex flex-col items-center justify-center text-center">
+                        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-5 shadow-inner"></div>
                         <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Syncing Signal Feed...</p>
                     </div>
                 ) : notifications.length === 0 ? (
                     <EmptyNotificationsState />
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <AnimatePresence>
                             {notifications.map((notification, idx) => (
                                 <NotificationCard

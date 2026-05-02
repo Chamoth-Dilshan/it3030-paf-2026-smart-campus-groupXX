@@ -108,7 +108,7 @@ const TicketList = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto pt-40 pb-12 px-4 space-y-8">
+    <div className="max-w-7xl mx-auto pt-24 pb-12 px-4 space-y-8">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -117,7 +117,7 @@ const TicketList = () => {
           <p className="text-slate-500 font-medium">Overview of all reported campus resource incidents.</p>
         </div>
         <Link
-          to="/technician-management"
+          to="/admin/technicians"
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 active:scale-95"
         >
           <Users size={15} />
@@ -253,7 +253,7 @@ const TicketList = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <Link
-                            to={`/update/${incident.id}`}
+                            to={`/admin/tickets/${incident.id}`}
                             className="inline-flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-indigo-600 border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50 rounded-2xl transition-all font-black text-xs uppercase tracking-widest"
                           >
                             <Settings size={13} />

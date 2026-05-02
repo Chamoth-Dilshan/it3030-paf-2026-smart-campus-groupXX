@@ -35,8 +35,8 @@ const StatusIcon = ({ status }) => {
 };
 
 const InfoCard = ({ icon, label, value, subtext }) => (
-  <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 flex items-start gap-4 hover:bg-white hover:border-indigo-100 transition-all group">
-    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+  <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 flex items-start gap-3 hover:bg-white hover:border-indigo-100 transition-all group">
+    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
       {icon}
     </div>
     <div>
@@ -81,8 +81,8 @@ const ResourceDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 text-slate-400">
-        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-6" />
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-5" />
         <span className="text-xs font-black uppercase tracking-[0.3em]">Synching Asset Briefing...</span>
       </div>
     );
@@ -90,13 +90,13 @@ const ResourceDetails = () => {
 
   if (error || !resource) {
     return (
-      <div className="max-w-lg mx-auto text-center py-40">
-        <Package size={64} className="text-slate-200 mx-auto mb-6" strokeWidth={1} />
-        <h3 className="text-2xl font-prestige text-slate-900 mb-2">Detailed Registry Void.</h3>
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-10">{error}</p>
+      <div className="max-w-lg mx-auto text-center py-20">
+        <Package size={52} className="text-slate-200 mx-auto mb-5" strokeWidth={1} />
+        <h3 className="text-2xl font-bold text-slate-900 mb-2">Detailed Registry Void.</h3>
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">{error}</p>
         <button
           onClick={() => navigate('/admin/resources')}
-          className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl active:scale-95"
+          className="px-5 py-3 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95"
         >
           Back to Resource Matrix
         </button>
@@ -114,9 +114,9 @@ const ResourceDetails = () => {
         Back to Asset Matrix
       </button>
 
-      <div className="bg-white rounded-[3.5rem] border border-slate-200 shadow-2xl overflow-hidden glass-heavy">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden glass-heavy">
         {/* Banner with Identity */}
-        <div className="relative h-80 bg-slate-100">
+        <div className="relative h-64 bg-slate-100">
           {resource.imageUrl ? (
             <img src={resource.imageUrl} alt={resource.name} className="w-full h-full object-cover" />
           ) : (
@@ -126,14 +126,14 @@ const ResourceDetails = () => {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
           
-          <div className="absolute bottom-10 left-10 right-10">
+          <div className="absolute bottom-6 left-6 right-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-[10px] font-black text-white px-3 py-1 bg-white/20 backdrop-blur-md rounded-md uppercase tracking-[0.2em]">{resource.type}</span>
                   <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">{resource.category}</span>
                 </div>
-                <h2 className="text-5xl font-prestige text-white leading-tight">{resource.name}.</h2>
+                <h2 className="text-3xl font-black tracking-normal text-white leading-tight">{resource.name}.</h2>
               </div>
               <StatusIcon status={resource.status} />
             </div>
@@ -141,34 +141,34 @@ const ResourceDetails = () => {
         </div>
 
         {/* Intelligence Matrix */}
-        <div className="p-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="p-5 sm:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <InfoCard icon={<MapPin size={20} />} label="Spatial Identity" value={resource.location} subtext="Campus Geographical Anchor" />
             <InfoCard icon={<Users size={20} />} label="Operational Capacity" value={`${resource.capacity} Standard Units`} subtext="Institutional Safety Threshold" />
             <InfoCard icon={<ShieldCheck size={20} />} label="Asset Custodian" value={resource.managerName} subtext="Assigned Stewardship" />
             <InfoCard icon={<Clock size={20} />} label="Verification Status" value={resource.status === 'ACTIVE' ? 'Operational' : 'Restricted'} subtext="Current Lifecycle Node" />
           </div>
 
-          <div className="space-y-10">
+          <div className="space-y-6">
             {/* Description */}
-            <div className="bg-slate-50/50 p-10 rounded-[2.5rem] border border-slate-100">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Strategic Asset Briefing</h4>
+            <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Strategic Asset Briefing</h4>
               <p className="text-base text-slate-600 font-medium leading-relaxed italic">
                 {resource.description || 'No formal operational briefing has been declared for this institutional asset.'}
               </p>
             </div>
 
             {/* Actions Matrix */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-10 border-t border-slate-50">
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t border-slate-50">
               <Link
                 to={`/admin/resources/edit/${resource.id}`}
-                className="flex-1 inline-flex items-center justify-center gap-3 w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl active:scale-95"
+                className="flex-1 inline-flex items-center justify-center gap-3 w-full py-4 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95"
               >
                 <Edit2 size={16} /> Update Registry Node
               </Link>
               <button
                 onClick={handleDelete}
-                className="flex-1 inline-flex items-center justify-center gap-3 w-full py-6 bg-rose-50 text-rose-500 border border-rose-100 rounded-[2rem] font-black text-[11px] uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
+                className="flex-1 inline-flex items-center justify-center gap-3 w-full py-4 bg-rose-50 text-rose-500 border border-rose-100 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
               >
                 <Trash2 size={16} /> Terminate Record
               </button>

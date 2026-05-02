@@ -1,4 +1,4 @@
-import { Ban, CheckCircle2, Clock3, XCircle } from 'lucide-react';
+import { Ban, CheckCircle2, Clock3, Flag, XCircle } from 'lucide-react';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 
 const styles = {
@@ -21,6 +21,11 @@ const styles = {
     label: 'Cancelled',
     className: 'bg-slate-100 text-slate-600 border-slate-200',
     icon: Ban,
+  },
+  [BOOKING_STATUS.COMPLETED]: {
+    label: 'Completed',
+    className: 'bg-blue-50 text-blue-700 border-blue-200',
+    icon: Flag,
   },
 };
 

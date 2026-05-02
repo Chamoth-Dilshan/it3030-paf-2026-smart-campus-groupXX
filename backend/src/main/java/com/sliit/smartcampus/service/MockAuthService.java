@@ -34,7 +34,7 @@ public class MockAuthService implements AuthService {
         Role role = Role.USER;
         if (request.getRole() != null) {
             try {
-                role = Role.valueOf(request.getRole().toUpperCase());
+                role = Role.fromValue(request.getRole());
             } catch (IllegalArgumentException e) {
                 // Fallback
             }
@@ -43,14 +43,14 @@ public class MockAuthService implements AuthService {
         user.setActive(true);
 
         User savedUser = userService.save(user);
-        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().apiName());
 
         return new AuthResponse(
                 token,
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().name()
+                savedUser.getRole().apiName()
         );
     }
 
@@ -65,14 +65,15 @@ public class MockAuthService implements AuthService {
             throw new RuntimeException("Account is deactivated");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        Role role = user.getRole() != null ? user.getRole().canonical() : Role.USER;
+        String token = jwtUtil.generateToken(user.getEmail(), role.apiName());
 
         return new AuthResponse(
                 token,
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name()
+                role.apiName()
         );
     }
 
@@ -86,18 +87,18 @@ public class MockAuthService implements AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.valueOf(role.toUpperCase()));
+        user.setRole(Role.fromValue(role));
         user.setActive(true);
 
         User savedUser = userService.save(user);
-        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().apiName());
 
         return new AuthResponse(
                 token,
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().name()
+                savedUser.getRole().apiName()
         );
     }
 }

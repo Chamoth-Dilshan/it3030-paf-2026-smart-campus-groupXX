@@ -11,7 +11,6 @@ import {
   ClipboardList,
   Hexagon,
   Home,
-  Info,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -22,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { getUnreadCount } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const getStoredUser = () => {
   try {
@@ -67,44 +67,50 @@ const publicItems = [
   { path: "/", label: "Home", icon: <Home size={18} />, exact: true },
   { path: "/resources", label: "Resources", icon: <Hexagon size={18} /> },
   { path: "/availability", label: "Availability", icon: <Activity size={18} /> },
-  { path: "/about", label: "About", icon: <Info size={18} /> },
+];
+
+const USER_WORKSPACE_ITEMS = [
+  { id: "my-bookings", path: "/my-bookings", label: "My Bookings", icon: <User size={18} /> },
+  { id: "report-incident", path: "/create", label: "Report Incident", icon: <PlusCircle size={18} /> },
+  { id: "my-incidents", path: "/my-incidents", label: "My Incidents", icon: <AlertCircle size={18} /> },
+  { id: "notifications", path: "/notifications", label: "Notifications", icon: <Bell size={18} /> },
 ];
 
 const getWorkspaceItems = (role) => {
-  switch (role) {
+  const normalizedRole = typeof role === "string" ? role.toUpperCase() : "USER";
+
+  switch (normalizedRole) {
     case "ADMIN":
       return [
-        { path: "/users", label: "User Management", icon: <Shield size={18} /> },
-        { path: "/admin/resources", label: "Manage Resources", icon: <LayoutDashboard size={18} /> },
-        { path: "/admin/bookings", label: "Booking Approvals", icon: <CalendarCheck size={18} /> },
-        { path: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
-        { path: "/ticket-list", label: "Incidents", icon: <AlertCircle size={18} /> },
+        { id: "admin-bookings", path: "/admin/bookings", label: "Admin Bookings", icon: <CalendarCheck size={18} /> },
+        { id: "manage-resources", path: "/admin/resources", label: "Manage Resources", icon: <LayoutDashboard size={18} /> },
+        { id: "issue-management", path: "/admin/tickets", label: "Issue Management", icon: <AlertCircle size={18} /> },
+        { id: "technician-management", path: "/admin/technicians", label: "Technicians", icon: <ClipboardList size={18} /> },
+        { id: "user-roles", path: "/users", label: "User Roles", icon: <Shield size={18} /> },
+        { id: "analytics", path: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
       ];
     case "MANAGER":
       return [
-        { path: "/admin", label: "Manager Dashboard", icon: <LayoutDashboard size={18} />, exact: true },
-        { path: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
+        { id: "manager-dashboard", path: "/admin", label: "Manager Dashboard", icon: <LayoutDashboard size={18} />, exact: true },
+        { id: "manager-analytics", path: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
       ];
     case "TECHNICIAN":
       return [
-        { path: "/technician", label: "Technician Dashboard", icon: <LayoutDashboard size={18} /> },
-        { path: "/technician/tickets", label: "Assigned Work", icon: <ClipboardList size={18} /> },
+        { id: "technician-queue", path: "/technician/tickets", label: "Technician Queue", icon: <ClipboardList size={18} /> },
+        { id: "assigned-tickets", path: "/technician/tickets?filter=ALL", label: "Assigned Tickets", icon: <AlertCircle size={18} /> },
+        { id: "ticket-dashboard", path: "/technician", label: "Ticket Dashboard", icon: <LayoutDashboard size={18} />, exact: true },
       ];
     case "USER":
-      return [
-        { path: "/bookings", label: "Book Resource", icon: <CalendarCheck size={18} /> },
-        { path: "/my-bookings", label: "My Bookings", icon: <User size={18} /> },
-        { path: "/my-incidents", label: "My Incidents", icon: <AlertCircle size={18} /> },
-        { path: "/create", label: "Report Incident", icon: <PlusCircle size={18} /> },
-      ];
+      return USER_WORKSPACE_ITEMS;
     default:
-      return [];
+      return USER_WORKSPACE_ITEMS;
   }
 };
 
 const isActivePath = (pathname, item) => {
+  const itemPath = item.path.split("?")[0];
   if (item.exact) return pathname === item.path;
-  return pathname === item.path || pathname.startsWith(`${item.path}/`);
+  return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
 };
 
 const NavItem = ({ item, onClick }) => (
@@ -150,6 +156,7 @@ const MobileSection = ({ title, items, onNavigate }) => {
 };
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isWorkspaceOpen, setIsWorkspaceOpen] = React.useState(false);
@@ -158,11 +165,11 @@ const Navbar = () => {
   const workspaceRef = React.useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const user = getStoredUser();
   const workspaceItems = getWorkspaceItems(user?.role);
   const hasWorkspace = workspaceItems.length > 0;
   const isWorkspaceActive = workspaceItems.some((item) => isActivePath(location.pathname, item));
   const isLoginPage = location.pathname === "/login";
+  const workspaceLabel = `${user?.role || "User"} Workspace`;
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -185,6 +192,23 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  React.useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsWorkspaceOpen(false);
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  React.useEffect(() => {
+    setIsWorkspaceOpen(false);
+    setIsUserMenuOpen(false);
+  }, [location.pathname, location.search]);
+
   const closeMenus = () => {
     setIsWorkspaceOpen(false);
     setIsUserMenuOpen(false);
@@ -192,10 +216,8 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    logout();
     navigate("/login");
-    window.location.reload();
   };
 
   return (
@@ -229,7 +251,10 @@ const Navbar = () => {
               <div className="relative ml-1 border-l border-slate-200 pl-1" ref={workspaceRef}>
                 <button
                   type="button"
-                  onClick={() => setIsWorkspaceOpen((open) => !open)}
+                  onClick={() => {
+                    setIsWorkspaceOpen((open) => !open);
+                    setIsUserMenuOpen(false);
+                  }}
                   className={`flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
                     isWorkspaceActive || isWorkspaceOpen
                       ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
@@ -237,6 +262,7 @@ const Navbar = () => {
                   }`}
                   aria-expanded={isWorkspaceOpen}
                   aria-haspopup="menu"
+                  aria-label="Open workspace navigation"
                 >
                   <Briefcase
                     size={16}
@@ -251,32 +277,37 @@ const Navbar = () => {
                 </button>
 
                 {isWorkspaceOpen && (
-                  <div className="surface-glass absolute left-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-white/70 shadow-xl">
-                    <div className="border-b border-slate-200/70 bg-white/60 px-4 py-3">
+                  <div
+                    className="absolute right-0 top-full z-[120] mt-3 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl shadow-slate-900/15 backdrop-blur-xl animate-scale"
+                    role="menu"
+                    aria-label={workspaceLabel}
+                  >
+                    <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        {user.role} Workspace
+                        {workspaceLabel}
                       </p>
                     </div>
-                    <div className="p-2">
+                    <div className="p-2.5">
                       {workspaceItems.map((item) => (
                         <NavLink
-                          key={item.path}
+                          key={item.id}
                           to={item.path}
                           end={item.exact}
                           onClick={closeMenus}
                           className={({ isActive }) => `
-                            flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all
+                            flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all
                             ${
                               isActive || isActivePath(location.pathname, item)
-                                ? "bg-blue-50 text-blue-700"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                                ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
+                                : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
                             }
                           `}
+                          role="menuitem"
                         >
-                          <span className="text-slate-500">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors">
                             {React.cloneElement(item.icon, { size: 17, strokeWidth: 2.2 })}
                           </span>
-                          {item.label}
+                          <span className="truncate">{item.label}</span>
                         </NavLink>
                       ))}
                     </div>
@@ -303,10 +334,14 @@ const Navbar = () => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setIsUserMenuOpen((open) => !open)}
+                  onClick={() => {
+                    setIsUserMenuOpen((open) => !open);
+                    setIsWorkspaceOpen(false);
+                  }}
                   className="flex h-10 items-center gap-2 rounded-lg border border-white/70 bg-white/45 px-2.5 text-slate-700 shadow-sm transition-all hover:border-slate-200 hover:bg-white/80"
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
+                  aria-label="Open profile menu"
                 >
                   <div className="gradient-primary flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white">
                     {user.name?.[0]?.toUpperCase() || "U"}

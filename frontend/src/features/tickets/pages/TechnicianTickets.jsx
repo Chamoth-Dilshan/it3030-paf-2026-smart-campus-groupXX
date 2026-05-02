@@ -112,7 +112,7 @@ const TechnicianTickets = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pt-40 pb-16 px-4 space-y-8">
+    <div className="max-w-7xl mx-auto pt-24 pb-16 px-4 space-y-8">
 
       {/* ── Header ─────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -1,8 +1,10 @@
-import { Calendar, Clock, Hash, User, Users, X } from 'lucide-react';
+import { Building2, Calendar, Clock, User, Users, X } from 'lucide-react';
 import BookingStatusBadge from './BookingStatusBadge';
 
 const formatTime = (time) => (time ? time.slice(0, 5) : '--:--');
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : 'Not recorded');
+const getResourceName = (booking) =>
+  booking.resourceName || booking.resource?.name || 'Resource name unavailable';
 
 const BookingDetailModal = ({ booking, isOpen, onClose }) => {
   if (!isOpen || !booking) return null;
@@ -26,8 +28,7 @@ const BookingDetailModal = ({ booking, isOpen, onClose }) => {
         </div>
 
         <div className="grid gap-4 p-6 sm:grid-cols-2">
-          <Detail icon={Hash} label="Booking ID" value={booking.id} />
-          <Detail icon={Hash} label="Resource ID" value={booking.resourceId} />
+          <Detail icon={Building2} label="Resource" value={getResourceName(booking)} />
           <Detail icon={User} label="User ID" value={booking.userId} />
           <Detail icon={Users} label="Expected Attendees" value={booking.expectedAttendees} />
           <Detail icon={Calendar} label="Date" value={booking.date} />

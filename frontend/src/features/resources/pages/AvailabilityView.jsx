@@ -1,276 +1,384 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  CalendarDays, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Sparkles, 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion as Motion } from 'framer-motion';
+import {
+  AlertCircle,
   ArrowRight,
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Lock,
+  MapPin,
   Package,
-  Calendar as CalendarIcon,
-  ChevronRight,
-  ShieldCheck,
-  Lock
+  Search,
+  Users
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
 import availabilityService from '../services/availabilityService';
 import resourceService from '../services/resourceService';
-import toast from 'react-hot-toast';
+import ResourceBookingModal from '../components/ResourceBookingModal';
+
+const todayString = () => {
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  return today.toISOString().slice(0, 10);
+};
+
+const formatTime = (value) => {
+  if (!value) return '--:--';
+  if (value.includes('T')) return value.split('T')[1].slice(0, 5);
+  return value.slice(0, 5);
+};
+
+const isAvailableSlot = (slot) => slot.status === 'AVAILABLE';
 
 const AvailabilityView = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+  const minDate = useMemo(() => todayString(), []);
+
   const [resourceId, setResourceId] = useState(searchParams.get('resourceId') || '');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(minDate);
   const [resources, setResources] = useState([]);
   const [availability, setAvailability] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [resourcesLoading, setResourcesLoading] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
+  const [bookingRequest, setBookingRequest] = useState(null);
 
-  useEffect(() => {
-    fetchResources();
-    if (resourceId) {
-        handleSearch();
+  const selectedResource = useMemo(
+    () => resources.find((resource) => resource.id === resourceId),
+    [resourceId, resources]
+  );
+
+  const availabilitySummary = useMemo(() => {
+    const available = availability.filter(isAvailableSlot).length;
+    return {
+      available,
+      booked: availability.length - available,
+      total: availability.length
+    };
+  }, [availability]);
+
+  const fetchResources = useCallback(async () => {
+    setResourcesLoading(true);
+    try {
+      const data = await resourceService.getAllResources();
+      setResources(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Resource inventory sync failure:', error);
+      toast.error('Failed to load resource list.');
+    } finally {
+      setResourcesLoading(false);
     }
   }, []);
 
-  const fetchResources = async () => {
-    try {
-        const data = await resourceService.getAllResources();
-        setResources(data);
-    } catch (error) {
-        console.error("Resource inventory sync failure:", error);
-    }
-  };
+  const handleSearch = useCallback(async (event) => {
+    event?.preventDefault();
 
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
     if (!resourceId || !date) {
-        toast.error("Please identify a resource and target date.");
-        return;
+      toast.error('Please select a resource and date.');
+      return;
     }
 
     setLoading(true);
     setHasSearched(true);
+
     try {
       const data = await availabilityService.getAvailability(resourceId, date);
-      setAvailability(data);
-      toast.success("Synchronized with Registry.");
+      setAvailability(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching availability:", error);
-      toast.error("Database Interrogation Failure.");
+      console.error('Error fetching availability:', error);
+      setAvailability([]);
+      toast.error('Failed to load availability.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [date, resourceId]);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
+
+  useEffect(() => {
+    if (resourceId) handleSearch();
+  }, [handleSearch, resourceId]);
 
   const handleSlotClick = (slot) => {
-    if (slot.status === 'BOOKED') {
-        toast.error("Temporal Conflict: Resource currently allocated.");
-        return;
+    if (!isAvailableSlot(slot)) {
+      toast.error('This time slot is already booked.');
+      return;
     }
-    
-    // Format for BookingFormPage
-    navigate('/bookings', { 
-        state: { 
-            resourceId, 
-            bookingDate: date,
-            startTime: slot.startTime,
-            endTime: slot.endTime
-        } 
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (!selectedResource) {
+      toast.error('Selected resource is still loading. Please try again.');
+      return;
+    }
+
+    setBookingRequest({
+      resource: selectedResource,
+      initialValues: {
+        date,
+        startTime: formatTime(slot.startTime),
+        endTime: formatTime(slot.endTime)
+      }
     });
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-40 pb-32 px-6 relative bg-blueprint">
-      <div className="absolute inset-0 bg-slate-50/90 backdrop-blur-[2px] pointer-events-none" />
-      <div className="grain-overlay" />
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header Section */}
-        <div className="mb-20">
-            <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-6"
-            >
-            <div className="p-2 bg-blue-600/10 rounded-lg">
-                <Sparkles size={16} className="text-blue-600" />
-            </div>
-            <span className="text-blue-600 font-black tracking-widest uppercase text-[11px] block underline underline-offset-8 decoration-blue-200">Temporal Status Engine</span>
-            </motion.div>
-            
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-                <div className="max-w-3xl">
-                    <motion.h1 
-                        initial={{ opacity: 0, x: -30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-8xl font-bold text-slate-900 leading-none mb-10"
-                    >
-                    Availability <br />Registry.
-                    </motion.h1>
-                    <motion.p 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-xl text-slate-500 font-medium max-w-2xl leading-relaxed"
-                    >
-                    Analyze institutional synchronization windows to identify available operational cycles for campus assets.
-                    </motion.p>
-                </div>
-
-                {/* Legend */}
-                <div className="flex items-center gap-8 bg-white/50 backdrop-blur px-8 py-5 rounded-3xl border border-white shadow-xl h-fit">
-                    <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Operational</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reserved</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Console */}
-        <motion.form 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          onSubmit={handleSearch}
-          className="glass-heavy bg-white/50 p-10 mb-20 rounded-[3.5rem] border border-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] flex flex-wrap lg:flex-nowrap gap-8 items-end"
-        >
-          <div className="flex-1 min-w-[300px] space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 flex items-center gap-2">
-                <Package size={12} /> Asset Identifier
-            </label>
-            <div className="relative">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-              <select
-                className="w-full pl-16 pr-6 py-5 bg-white border border-white rounded-[2rem] text-lg font-bold text-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-inner appearance-none cursor-pointer"
-                value={resourceId}
-                onChange={(e) => setResourceId(e.target.value)}
-              >
-                <option value="">Select Resource Focus...</option>
-                {resources.map(res => (
-                    <option key={res.id} value={res.id}>{res.name} — {res.category}</option>
-                ))}
-              </select>
-            </div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eff6ff_0,#f8fafc_38%,#f8fafc_100%)] px-4 pb-16 pt-24 sm:px-6">
+      <main className="mx-auto max-w-7xl py-8">
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-4xl font-black leading-tight tracking-normal text-slate-950 sm:text-5xl">
+              Check resource availability
+            </h1>
+            <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-slate-600">
+              Select a campus resource and date to view open booking slots.
+            </p>
           </div>
 
-          <div className="w-full lg:w-72 space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 flex items-center gap-2">
-                <CalendarIcon size={12} /> Baseline Date
-            </label>
-            <div className="relative">
-                <CalendarDays className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                <input 
-                    type="date"
-                    className="w-full pl-16 pr-8 py-5 bg-white border border-white rounded-[2rem] text-lg font-bold text-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-inner"
-                    value={date}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setDate(e.target.value)}
-                />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full lg:w-auto px-12 py-5 bg-slate-950 text-white font-black text-xs uppercase tracking-[0.4em] rounded-[2rem] hover:bg-blue-600 transition-all shadow-2xl active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4 group"
-          >
-            {loading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            ) : (
-                <>
-                    Interrogate Feed
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </>
-            )}
-          </button>
-        </motion.form>
-
-        {/* Result Matrix */}
-        <div className="relative min-h-[500px]">
-          {loading && availability.length === 0 ? (
-            <div className="py-40 flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-8 shadow-inner"></div>
-              <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">Synchronizing Matrix...</p>
-            </div>
-          ) : availability.length > 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"
-            >
-              <AnimatePresence>
-                {availability.map((slot, idx) => (
-                    <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.03 }}
-                        onClick={() => handleSlotClick(slot)}
-                        className={`group relative p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer overflow-hidden
-                            ${slot.status === 'AVAILABLE' 
-                                ? 'bg-white border-white hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/5' 
-                                : 'bg-slate-100/50 border-slate-200/50 cursor-not-allowed opacity-60'
-                            }
-                        `}
-                    >
-                        {slot.status === 'AVAILABLE' && (
-                            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        )}
-                        
-                        <div className={`p-4 rounded-2xl mb-6 inline-block shadow-inner
-                            ${slot.status === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-200 text-slate-400'}
-                        `}>
-                            {slot.status === 'AVAILABLE' ? <ShieldCheck size={24} /> : <Lock size={24} />}
-                        </div>
-
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none mb-2">Timestamp</p>
-                            <h4 className={`text-2xl font-bold ${slot.status === 'AVAILABLE' ? 'text-slate-900' : 'text-slate-500'}`}>
-                                {slot.startTime}
-                            </h4>
-                            <div className="flex items-center justify-between mt-4">
-                                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border
-                                    ${slot.status === 'AVAILABLE' 
-                                        ? 'bg-emerald-50 border-emerald-100 text-emerald-600' 
-                                        : 'bg-slate-200 border-slate-200 text-slate-400'
-                                    }
-                                `}>
-                                    {slot.status}
-                                </span>
-                                {slot.status === 'AVAILABLE' && (
-                                    <ChevronRight size={14} className="text-emerald-500 group-hover:translate-x-1 transition-transform" />
-                                )}
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          ) : hasSearched && !loading ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="py-40 flex flex-col items-center justify-center text-center opacity-30"
-            >
-              <AlertCircle size={80} className="text-slate-300 mb-8" />
-              <p className="text-slate-400 font-black uppercase tracking-[0.5em] text-[10px]">No Registry Entries Found for Asset Target</p>
-            </motion.div>
-          ) : (
-            <div className="py-40 flex flex-col items-center justify-center text-center opacity-30">
-              <Package size={80} className="text-slate-200 mb-8" />
-              <p className="text-slate-400 font-black uppercase tracking-[0.5em] text-[10px]">Initiate Asset Scan to Begin</p>
+          {hasSearched && availabilitySummary.total > 0 && (
+            <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-slate-200 bg-white text-center shadow-sm">
+              <SummaryItem label="Available" value={availabilitySummary.available} accent="text-emerald-600" />
+              <SummaryItem label="Booked" value={availabilitySummary.booked} accent="text-rose-600" />
+              <SummaryItem label="Total" value={availabilitySummary.total} accent="text-blue-700" />
             </div>
           )}
         </div>
+
+        <Motion.form
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          onSubmit={handleSearch}
+          className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px_auto] lg:items-end">
+            <label className="mb-0">
+              <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-normal text-slate-600">
+                <Package size={15} />
+                Resource
+              </span>
+              <div className="relative">
+                <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <select
+                  value={resourceId}
+                  onChange={(event) => setResourceId(event.target.value)}
+                  disabled={resourcesLoading}
+                  className="!h-12 !rounded-xl !border-slate-300 !bg-white !py-0 !pl-11 !pr-10 !text-sm !font-semibold !text-slate-900 shadow-sm focus:!border-blue-500 focus:!bg-white focus:!shadow-sm disabled:!bg-slate-100 disabled:!text-slate-400"
+                >
+                  <option value="">{resourcesLoading ? 'Loading resources...' : 'Select a resource'}</option>
+                  {resources.map((resource) => (
+                    <option key={resource.id} value={resource.id}>
+                      {resource.name} - {resource.category || 'Resource'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+            <label className="mb-0">
+              <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-normal text-slate-600">
+                <CalendarDays size={15} />
+                Date
+              </span>
+              <input
+                type="date"
+                min={minDate}
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                className="!h-12 !rounded-xl !border-slate-300 !bg-white !py-0 !px-4 !text-sm !font-semibold !text-slate-900 shadow-sm focus:!border-blue-500 focus:!bg-white focus:!shadow-sm"
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading || resourcesLoading}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Checking
+                </>
+              ) : (
+                <>
+                  Check Availability
+                  <ArrowRight size={17} />
+                </>
+              )}
+            </button>
+          </div>
+
+          {selectedResource && (
+            <div className="mt-5 grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-600 sm:grid-cols-3">
+              <span className="inline-flex items-center gap-2">
+                <MapPin size={16} className="text-blue-700" />
+                {selectedResource.location || 'Location not assigned'}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Users size={16} className="text-emerald-700" />
+                Capacity {selectedResource.capacity || 'N/A'}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-slate-500" />
+                {(selectedResource.status || 'UNKNOWN').replaceAll('_', ' ')}
+              </span>
+            </div>
+          )}
+        </Motion.form>
+
+        <section className="min-h-[320px]">
+          {loading ? (
+            <LoadingState />
+          ) : availability.length > 0 ? (
+            <>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-black tracking-normal text-slate-950">Time slots</h2>
+                  <p className="mt-1 text-sm font-medium text-slate-600">
+                    {selectedResource?.name || 'Selected resource'} on {date}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs font-black uppercase tracking-normal">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-emerald-700 ring-1 ring-emerald-100">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Available
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-rose-700 ring-1 ring-rose-100">
+                    <span className="h-2 w-2 rounded-full bg-rose-500" />
+                    Booked
+                  </span>
+                </div>
+              </div>
+
+              <Motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+              >
+                {availability.map((slot, index) => (
+                  <AvailabilitySlotCard
+                    key={`${slot.startTime}-${slot.endTime}-${index}`}
+                    slot={slot}
+                    index={index}
+                    onClick={handleSlotClick}
+                  />
+                ))}
+              </Motion.div>
+            </>
+          ) : hasSearched ? (
+            <EmptyState
+              icon={AlertCircle}
+              title="No slots found"
+              message="No availability entries were returned for this resource and date."
+            />
+          ) : (
+            <EmptyState
+              icon={CalendarCheck}
+              title="Choose a resource"
+              message="Select a resource and date, then check availability to see booking slots."
+            />
+          )}
+        </section>
+      </main>
+
+      {bookingRequest && (
+        <ResourceBookingModal
+          resource={bookingRequest.resource}
+          initialBookingValues={bookingRequest.initialValues}
+          onClose={() => setBookingRequest(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+const SummaryItem = ({ label, value, accent }) => (
+  <div className="min-w-24 border-r border-slate-100 px-4 py-3 last:border-r-0">
+    <p className={`text-2xl font-black leading-none ${accent}`}>{value}</p>
+    <p className="mt-1 text-[10px] font-black uppercase tracking-normal text-slate-500">{label}</p>
+  </div>
+);
+
+const AvailabilitySlotCard = ({ slot, index, onClick }) => {
+  const available = isAvailableSlot(slot);
+  const statusLabel = (slot.status || 'UNKNOWN').replaceAll('_', ' ');
+
+  return (
+    <Motion.button
+      type="button"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.025 }}
+      whileHover={available ? { y: -3 } : undefined}
+      onClick={() => onClick(slot)}
+      className={`group min-h-40 rounded-2xl border p-4 text-left shadow-sm transition ${
+        available
+          ? 'border-emerald-100 bg-white hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/10'
+          : 'cursor-not-allowed border-slate-200 bg-slate-100/80 opacity-75'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+          available ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-200 text-slate-500'
+        }`}>
+          {available ? <CheckCircle2 size={21} /> : <Lock size={20} />}
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-normal ${
+          available ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' : 'bg-slate-200 text-slate-500'
+        }`}>
+          {statusLabel}
+        </span>
       </div>
+
+      <div className="mt-5">
+        <p className="mb-1 flex items-center gap-1.5 text-xs font-black uppercase tracking-normal text-slate-400">
+          <Clock size={13} />
+          Time slot
+        </p>
+        <h3 className={`text-2xl font-black tracking-normal ${available ? 'text-slate-950' : 'text-slate-500'}`}>
+          {formatTime(slot.startTime)}
+          <span className="mx-2 text-slate-300">-</span>
+          {formatTime(slot.endTime)}
+        </h3>
+      </div>
+
+      <div className={`mt-5 inline-flex items-center gap-2 text-sm font-bold ${
+        available ? 'text-blue-700' : 'text-slate-400'
+      }`}>
+        {available ? 'Book this slot' : 'Already booked'}
+        {available && <ArrowRight size={16} className="transition group-hover:translate-x-1" />}
+      </div>
+    </Motion.button>
+  );
+};
+
+const LoadingState = () => (
+  <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+    <div className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-700" />
+    <p className="text-sm font-black uppercase tracking-normal text-slate-500">Checking availability</p>
+  </div>
+);
+
+const EmptyState = ({ icon, title, message }) => {
+  const EmptyIcon = icon;
+
+  return (
+    <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+        <EmptyIcon size={28} />
+      </div>
+      <h3 className="text-2xl font-black tracking-normal text-slate-950">{title}</h3>
+      <p className="mx-auto mt-3 max-w-md text-sm font-medium leading-6 text-slate-600">{message}</p>
     </div>
   );
 };

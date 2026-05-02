@@ -85,7 +85,7 @@ const TechnicianManagement = () => {
   const categories = ['ALL', 'IT Support', 'Electrical', 'Maintenance', 'Network'];
 
   return (
-    <div className="max-w-6xl mx-auto pt-40 pb-12 px-4 space-y-8">
+    <div className="max-w-6xl mx-auto pt-24 pb-12 px-4 space-y-8">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -102,11 +102,11 @@ const TechnicianManagement = () => {
             Refresh
           </button>
           <Link
-            to="/admin"
+            to="/admin/tickets"
             className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all font-black text-xs uppercase tracking-widest shadow-sm"
           >
             <ArrowLeft size={16} />
-            Back to Dashboard
+            Back to Issues
           </Link>
         </div>
       </div>

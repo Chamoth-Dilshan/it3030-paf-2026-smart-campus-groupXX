@@ -1,5 +1,6 @@
 package com.sliit.smartcampus.config;
 
+import com.sliit.smartcampus.model.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -21,7 +22,9 @@ public class MongoDateTimeConfig {
                 new StringToLocalDateConverter(),
                 new LocalDateToStringConverter(),
                 new StringToLocalTimeConverter(),
-                new LocalTimeToStringConverter()));
+                new LocalTimeToStringConverter(),
+                new StringToRoleConverter(),
+                new RoleToStringConverter()));
     }
 
     @ReadingConverter
@@ -65,6 +68,22 @@ public class MongoDateTimeConfig {
         @Override
         public String convert(LocalTime source) {
             return source == null ? null : source.toString();
+        }
+    }
+
+    @ReadingConverter
+    static class StringToRoleConverter implements Converter<String, Role> {
+        @Override
+        public Role convert(String source) {
+            return Role.fromValue(source);
+        }
+    }
+
+    @WritingConverter
+    static class RoleToStringConverter implements Converter<Role, String> {
+        @Override
+        public String convert(Role source) {
+            return source == null ? null : source.apiName();
         }
     }
 }

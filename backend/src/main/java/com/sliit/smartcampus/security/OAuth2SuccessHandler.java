@@ -54,8 +54,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             user = existingUser.get();
         }
 
-        // Generate JWT token
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        Role role = user.getRole() != null ? user.getRole().canonical() : Role.USER;
+        String token = jwtUtil.generateToken(user.getEmail(), role.apiName());
 
         // Redirect to frontend with token
         String redirectUrl = UriComponentsBuilder
@@ -64,7 +64,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .queryParam("token", token)
                 .queryParam("name", user.getName() != null ? user.getName() : email)
                 .queryParam("email", user.getEmail())
-                .queryParam("role", user.getRole().name())
+                .queryParam("role", role.apiName())
                 .queryParam("id", user.getId() != null ? user.getId() : "")
                 .build()
                 .encode()

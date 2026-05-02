@@ -5,13 +5,17 @@ import com.sliit.smartcampus.dto.booking.BookingStatusResponse;
 import com.sliit.smartcampus.dto.booking.CreateBookingRequest;
 import com.sliit.smartcampus.exception.booking.BookingConflictException;
 import com.sliit.smartcampus.exception.booking.InvalidBookingStateException;
+import com.sliit.smartcampus.exception.resource.ResourceNotFoundException;
 import com.sliit.smartcampus.model.Booking;
 import com.sliit.smartcampus.model.BookingStatus;
 import com.sliit.smartcampus.model.Resource;
 import com.sliit.smartcampus.model.ResourceStatus;
+import com.sliit.smartcampus.model.User;
 import com.sliit.smartcampus.repository.BookingRepository;
 import com.sliit.smartcampus.repository.ResourceRepository;
+import com.sliit.smartcampus.repository.UserRepository;
 import com.sliit.smartcampus.service.BookingService;
+import com.sliit.smartcampus.service.NotificationService;
 import com.sliit.smartcampus.model.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,11 +50,17 @@ class BookingServiceTest {
     @Mock
     private ResourceRepository resourceRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private UserRepository userRepository;
+
     private BookingService bookingService;
 
     @BeforeEach
     void setUp() {
-        bookingService = new BookingService(bookingRepository, resourceRepository);
+        bookingService = new BookingService(bookingRepository, resourceRepository, notificationService, userRepository);
     }
 
     @Test
@@ -67,10 +77,13 @@ class BookingServiceTest {
             booking.setId("booking-1");
             return booking;
         });
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+        when(userRepository.findByRole(Role.ADMIN)).thenReturn(List.of(activeAdmin("admin-1")));
 
         var response = bookingService.createBooking(request, "user-1", Role.USER);
 
         assertEquals("booking-1", response.getId());
+        assertEquals("Test Resource", response.getResourceName());
         assertEquals(BookingStatus.PENDING, response.getStatus());
         assertEquals(request.getExpectedAttendees(), response.getExpectedAttendees());
 
@@ -78,12 +91,18 @@ class BookingServiceTest {
         verify(bookingRepository).save(captor.capture());
         assertEquals("user-1", captor.getValue().getUserId());
         assertEquals(BookingStatus.PENDING, captor.getValue().getStatus());
+        verify(notificationService).createNotification(
+                eq("admin-1"),
+                eq("New booking awaiting approval"),
+                eq("A new booking for Test Resource on " + request.getDate() + " from 09:00 to 11:00 is awaiting approval."),
+                eq("BOOKING"));
     }
 
     @Test
     void createBookingRejectsOverlappingBookingForSameResourceAndDate() {
         CreateBookingRequest request = validRequest();
         Booking existing = booking("booking-1", BookingStatus.APPROVED, "other-user");
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.findByResourceIdAndDateAndStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
                 eq("RES-101"),
                 eq(request.getDate()),
@@ -98,9 +117,106 @@ class BookingServiceTest {
     }
 
     @Test
+    void createBookingRejectsOverlappingPendingBookingForSameResourceAndDate() {
+        CreateBookingRequest request = validRequest();
+        Booking existing = booking("booking-1", BookingStatus.PENDING, "other-user");
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+        when(bookingRepository.findByResourceIdAndDateAndStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                eq("RES-101"),
+                eq(request.getDate()),
+                eq(List.of(BookingStatus.PENDING, BookingStatus.APPROVED)),
+                eq(request.getEndTime()),
+                eq(request.getStartTime()))).thenReturn(List.of(existing));
+
+        assertThrows(BookingConflictException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBookingRejectsMissingResource() {
+        CreateBookingRequest request = validRequest();
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBookingRejectsOutOfServiceResource() {
+        CreateBookingRequest request = validRequest();
+        Resource resource = resource();
+        resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource));
+
+        assertThrows(InvalidBookingStateException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBookingRejectsOverCapacityRequest() {
+        CreateBookingRequest request = new CreateBookingRequest(
+                "RES-101",
+                LocalDate.now().plusDays(1),
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0),
+                "Large event",
+                30);
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+
+        assertThrows(InvalidBookingStateException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBookingRejectsUnavailableResourceDay() {
+        LocalDate date = LocalDate.now().plusDays(1);
+        CreateBookingRequest request = new CreateBookingRequest(
+                "RES-101",
+                date,
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0),
+                "Weekend study group",
+                6);
+        Resource resource = resource();
+        resource.setAvailableDays(List.of(date.plusDays(1).getDayOfWeek().name()));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource));
+
+        assertThrows(InvalidBookingStateException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBookingRejectsTimeOutsideAvailabilityHours() {
+        CreateBookingRequest request = new CreateBookingRequest(
+                "RES-101",
+                LocalDate.now().plusDays(1),
+                LocalTime.of(7, 0),
+                LocalTime.of(8, 0),
+                "Early setup",
+                6);
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+
+        assertThrows(InvalidBookingStateException.class,
+                () -> bookingService.createBooking(request, "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
     void approveBookingMovesPendingToApproved() {
         Booking pending = booking("booking-1", BookingStatus.PENDING, "user-1");
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(pending));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.findByResourceIdAndDateAndStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
                 eq(pending.getResourceId()),
                 eq(pending.getDate()),
@@ -113,12 +229,18 @@ class BookingServiceTest {
 
         assertEquals(BookingStatus.APPROVED, response.getStatus());
         assertEquals("admin-1", response.getReviewedBy());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking approved"),
+                eq("Your booking for Test Resource on " + pending.getDate() + " from 09:00 to 11:00 was approved."),
+                eq("BOOKING"));
     }
 
     @Test
     void rejectBookingMovesPendingToRejectedWithReason() {
         Booking pending = booking("booking-1", BookingStatus.PENDING, "user-1");
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(pending));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingStatusResponse response = bookingService.rejectBooking(
@@ -130,17 +252,69 @@ class BookingServiceTest {
         assertEquals(BookingStatus.REJECTED, response.getStatus());
         assertEquals("Resource unavailable", response.getReviewReason());
         assertEquals("admin-1", response.getReviewedBy());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking rejected"),
+                eq("Your booking for Test Resource on " + pending.getDate() + " from 09:00 to 11:00 was rejected."),
+                eq("BOOKING"));
+    }
+
+    @Test
+    void updateBookingAllowsOwnerToEditPendingBooking() {
+        Booking pending = booking("booking-1", BookingStatus.PENDING, "user-1");
+        CreateBookingRequest request = new CreateBookingRequest(
+                "RES-101",
+                LocalDate.now().plusDays(2),
+                LocalTime.of(9, 30),
+                LocalTime.of(10, 30),
+                "Updated purpose",
+                8);
+
+        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(pending));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
+        when(bookingRepository.findByResourceIdAndDateAndStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                eq("RES-101"),
+                eq(request.getDate()),
+                anyCollection(),
+                eq(request.getEndTime()),
+                eq(request.getStartTime()))).thenReturn(List.of());
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = bookingService.updateBooking("booking-1", request, "user-1", Role.USER);
+
+        assertEquals("Updated purpose", response.getPurpose());
+        assertEquals(LocalTime.of(9, 30), response.getStartTime());
+        assertEquals(LocalTime.of(10, 30), response.getEndTime());
+        assertEquals(8, response.getExpectedAttendees());
+        assertEquals(BookingStatus.PENDING, response.getStatus());
+    }
+
+    @Test
+    void updateBookingRejectsApprovedBooking() {
+        Booking approved = booking("booking-1", BookingStatus.APPROVED, "user-1");
+        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(approved));
+
+        assertThrows(InvalidBookingStateException.class,
+                () -> bookingService.updateBooking("booking-1", validRequest(), "user-1", Role.USER));
+
+        verify(bookingRepository, never()).save(any(Booking.class));
     }
 
     @Test
     void cancelBookingOnlyAllowsApprovedBookings() {
         Booking approved = booking("booking-1", BookingStatus.APPROVED, "user-1");
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(approved));
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource()));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingStatusResponse response = bookingService.cancelBooking("booking-1", "user-1", Role.USER);
 
         assertEquals(BookingStatus.CANCELLED, response.getStatus());
+        verify(notificationService).createNotification(
+                eq("user-1"),
+                eq("Booking cancelled"),
+                eq("Your booking for Test Resource on " + approved.getDate() + " from 09:00 to 11:00 was cancelled."),
+                eq("BOOKING"));
     }
 
     @Test
@@ -196,6 +370,29 @@ class BookingServiceTest {
         assertEquals("AVAILABLE", slots.get(2).getStatus());
     }
 
+    @Test
+    void getAvailabilityDoesNotBlockPendingBookings() {
+        LocalDate date = LocalDate.of(2026, 5, 1);
+        Resource resource = resource();
+
+        when(resourceRepository.findById("RES-101")).thenReturn(Optional.of(resource));
+        when(bookingRepository.findByResourceIdAndDateAndStatusInOrderByStartTimeAsc(
+                eq("RES-101"),
+                eq(date),
+                eq(List.of(BookingStatus.APPROVED)))).thenReturn(List.of());
+
+        var slots = bookingService.getAvailability("RES-101", date);
+
+        assertEquals(3, slots.size());
+        assertEquals("AVAILABLE", slots.get(0).getStatus());
+        assertEquals("AVAILABLE", slots.get(1).getStatus());
+        assertEquals("AVAILABLE", slots.get(2).getStatus());
+        verify(bookingRepository).findByResourceIdAndDateAndStatusInOrderByStartTimeAsc(
+                eq("RES-101"),
+                eq(date),
+                eq(List.of(BookingStatus.APPROVED)));
+    }
+
     private CreateBookingRequest validRequest() {
         return new CreateBookingRequest(
                 "RES-101",
@@ -232,8 +429,18 @@ class BookingServiceTest {
                 .location("Main Building")
                 .capacity(25)
                 .status(ResourceStatus.ACTIVE)
-                .availableDays(List.of("FRIDAY"))
+                .availableDays(null)
                 .availableTimes(Map.of("start", "08:00", "end", "11:00"))
+                .build();
+    }
+
+    private User activeAdmin(String id) {
+        return User.builder()
+                .id(id)
+                .name("Admin User")
+                .email(id + "@campus.edu")
+                .role(Role.ADMIN)
+                .active(true)
                 .build();
     }
 }
