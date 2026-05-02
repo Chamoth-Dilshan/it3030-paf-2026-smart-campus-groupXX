@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/common/Navbar';
 import HomePage from './routes/HomePage';
-import BookingFormPage from './features/bookings/pages/BookingFormPage';
 import MyBookingsPage from './features/bookings/pages/MyBookingsPage';
 import MyIncidents from './features/tickets/pages/MyIncidents';
 import CreateIncident from './features/tickets/pages/CreateIncident';
@@ -15,7 +14,6 @@ import TechnicianTickets from './features/tickets/pages/TechnicianTickets';
 import TechnicianTicketDetail from './features/tickets/pages/TechnicianTicketDetail';
 
 import AvailabilityView from './features/resources/pages/AvailabilityView';
-import AboutPage from './routes/AboutPage';
 import ResourcesPage from './features/resources/pages/ResourcesPage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
@@ -46,7 +44,6 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/availability" element={<AvailabilityView />} />
 
@@ -88,14 +85,7 @@ function App() {
           />
 
           {/* Booking routes */}
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <BookingFormPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/bookings" element={<Navigate to="/resources" replace />} />
           <Route
             path="/my-bookings"
             element={
@@ -175,7 +165,14 @@ function App() {
           >
             <Route index element={<Navigate to="resources" />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
-            <Route path="bookings" element={<AdminBookingApprovalPage />} />
+            <Route
+              path="bookings"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminBookingApprovalPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="resources" element={<ResourceList />} />
             <Route path="resources/add" element={<ResourceForm />} />
             <Route path="resources/edit/:id" element={<ResourceForm />} />

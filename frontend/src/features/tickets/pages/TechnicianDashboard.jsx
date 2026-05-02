@@ -150,7 +150,7 @@ const TechnicianDashboard = () => {
   const recentOpen = filteredActive.slice(0, 5);
 
   return (
-    <div className="max-w-7xl mx-auto pt-40 pb-16 px-4 space-y-10">
+    <div className="max-w-7xl mx-auto pt-24 pb-16 px-4 space-y-8">
 
       {/* ── Welcome Hero ──────────────────── */}
       <motion.div

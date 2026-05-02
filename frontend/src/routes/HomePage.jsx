@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Activity,
   ArrowRight,
-  BarChart3,
   BookOpen,
   CalendarDays,
-  CheckCircle2,
-  Clock,
   Cpu,
   FileText,
   Globe,
@@ -22,38 +19,8 @@ import {
   Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import analyticsService from '../features/bookings/services/analyticsService';
-
-const fallbackStats = {
-  total: 124,
-  approved: 86,
-  pending: 12,
-  rejected: 4
-};
 
 const HomePage = () => {
-  const [stats, setStats] = useState(fallbackStats);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!localStorage.getItem('token')) return;
-
-      try {
-        const data = await analyticsService.getStats();
-        setStats(data);
-      } catch (error) {
-        console.error('Error fetching homepage stats:', error);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  const totalBookings = stats.totalBookings ?? stats.total ?? fallbackStats.total;
-  const approvedBookings = stats.approvedBookings ?? stats.approved ?? fallbackStats.approved;
-  const pendingBookings = stats.pendingBookings ?? stats.pending ?? fallbackStats.pending;
-  const rejectedBookings = stats.rejectedBookings ?? stats.rejected ?? fallbackStats.rejected;
-
   const personas = [
     {
       role: 'Student',
@@ -81,41 +48,6 @@ const HomePage = () => {
       path: '/resources',
       icon: HardHat,
       accent: 'bg-amber-50 text-amber-700'
-    }
-  ];
-
-  const intelligenceData = [
-    {
-      label: 'Total requests',
-      value: totalBookings,
-      desc: 'Booking requests tracked in the operations portal.',
-      icon: BarChart3,
-      color: 'text-blue-700',
-      bg: 'bg-blue-50'
-    },
-    {
-      label: 'Approved bookings',
-      value: approvedBookings,
-      desc: 'Reservations cleared for academic use.',
-      icon: CheckCircle2,
-      color: 'text-emerald-700',
-      bg: 'bg-emerald-50'
-    },
-    {
-      label: 'Pending queue',
-      value: pendingBookings,
-      desc: 'Requests still waiting for review.',
-      icon: Clock,
-      color: 'text-amber-700',
-      bg: 'bg-amber-50'
-    },
-    {
-      label: 'Rejected entries',
-      value: rejectedBookings,
-      desc: 'Requests declined or sent back for correction.',
-      icon: Activity,
-      color: 'text-rose-700',
-      bg: 'bg-rose-50'
     }
   ];
 
@@ -198,38 +130,38 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
-      <section className="relative isolate overflow-hidden bg-slate-950 pt-28 text-white lg:pt-32">
+      <section className="relative isolate overflow-hidden bg-slate-950 pt-16 text-white">
         <img
-          src="/campus-life.jpg"
-          alt="Students collaborating on campus"
+          src="/backgrounds/colorful-campus.png"
+          alt="Glass academic center at sunset with landscaped campus walkways"
           className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
         <div className="absolute inset-0 -z-10 bg-slate-950/70" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-white to-transparent" />
 
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:pb-28">
+        <div className="mx-auto grid max-w-7xl gap-5 px-5 py-8 sm:px-6 lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[1.08fr_0.82fr] lg:items-center lg:py-6">
           <div className="max-w-3xl">
-            <div className="mb-8 inline-flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/85 backdrop-blur">
-              <ShieldCheck size={18} className="text-emerald-300" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white/85 backdrop-blur">
+              <ShieldCheck size={17} className="text-emerald-300" />
               Verified academic operations
             </div>
 
-            <h1 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-normal text-white sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-4xl font-black leading-[1.05] tracking-normal text-white sm:text-5xl lg:text-[3.4rem] xl:text-[3.75rem]">
               Campus intelligence for every resource decision.
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg font-medium leading-8 text-slate-100">
+            <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-slate-100">
               SmartCampus brings bookings, availability, and operational oversight into one reliable portal for students, faculty, and staff.
             </p>
 
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link to="/login" className="btn-primary min-h-12 px-6 text-sm font-extrabold uppercase tracking-normal">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link to="/login" className="btn-primary min-h-11 px-6 text-sm font-extrabold uppercase tracking-normal">
                 Launch portal
                 <ArrowRight size={18} />
               </Link>
               <Link
                 to="/availability"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 text-sm font-extrabold uppercase tracking-normal text-white transition hover:bg-white/15"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 text-sm font-extrabold uppercase tracking-normal text-white transition hover:bg-white/15"
               >
                 View availability
                 <CalendarDays size={18} />
@@ -237,23 +169,23 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+          <div className="grid gap-2.5 sm:grid-cols-3 lg:w-full lg:max-w-[440px] lg:grid-cols-1 lg:justify-self-end">
             {personas.map((persona) => {
               const Icon = persona.icon;
               return (
                 <div key={persona.role}>
                   <Link
                     to={persona.path}
-                    className="group flex h-full flex-col rounded-2xl border border-white/70 bg-white p-5 text-slate-900 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl sm:min-h-[260px] lg:min-h-0 lg:flex-row lg:items-start lg:gap-5"
+                    className="group flex h-full flex-col rounded-2xl border border-white/70 bg-white p-3 text-slate-900 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl sm:min-h-[190px] lg:h-[148px] lg:flex-row lg:items-start lg:gap-3"
                   >
-                    <span className={`mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${persona.accent} lg:mb-0`}>
-                      <Icon size={24} />
+                    <span className={`mb-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${persona.accent} lg:mb-0`}>
+                      <Icon size={20} />
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-xs font-black uppercase tracking-normal text-blue-700">{persona.role}</span>
-                      <span className="mt-2 text-xl font-extrabold leading-6 tracking-normal text-slate-950">{persona.title}</span>
-                      <span className="mt-3 text-sm font-medium leading-6 text-slate-600">{persona.desc}</span>
-                      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-normal text-slate-900 group-hover:text-blue-700">
+                      <span className="text-[11px] font-black uppercase tracking-normal text-blue-700">{persona.role}</span>
+                      <span className="mt-1 text-base font-extrabold leading-5 tracking-normal text-slate-950">{persona.title}</span>
+                      <span className="mt-1.5 line-clamp-2 text-sm font-medium leading-5 text-slate-600">{persona.desc}</span>
+                      <span className="mt-auto inline-flex items-center gap-2 pt-2 text-[11px] font-black uppercase tracking-normal text-slate-900 group-hover:text-blue-700">
                         {persona.cta}
                         <ArrowRight size={14} />
                       </span>
@@ -262,44 +194,6 @@ const HomePage = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-20 lg:py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div>
-              <span className="text-sm font-black uppercase tracking-normal text-blue-700">System vitality</span>
-              <h2 className="mt-4 text-4xl font-black leading-tight tracking-normal text-slate-950 sm:text-5xl">
-                Campus integrity by the numbers
-              </h2>
-              <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">
-                Monitor booking volume, approval flow, and pending workload without scanning disconnected reports.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {intelligenceData.map((intel) => {
-                const Icon = intel.icon;
-                return (
-                  <div
-                    key={intel.label}
-                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${intel.bg} ${intel.color}`}>
-                        <Icon size={22} />
-                      </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-black leading-none tracking-normal text-slate-950">{intel.value}</div>
-                      </div>
-                    </div>
-                    <h3 className="mt-5 text-sm font-black uppercase tracking-normal text-slate-950">{intel.label}</h3>
-                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{intel.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       </section>

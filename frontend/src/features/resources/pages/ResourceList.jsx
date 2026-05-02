@@ -143,31 +143,31 @@ const ResourceList = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 text-slate-400">
-        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6" />
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-5" />
         <span className="text-xs font-black uppercase tracking-[0.3em]">Interrogating Registry...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header with Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-5 border-b border-slate-100">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-1">Asset Control Matrix.</h2>
+          <h2 className="text-2xl font-black tracking-normal text-slate-900 mb-1">Asset Control Matrix.</h2>
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Global Resource Lifecycle Management</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={downloadPDF}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-200 shadow-sm active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-3 bg-white text-slate-900 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-200 shadow-sm active:scale-95"
           >
             <Package size={16} className="text-blue-600" /> Download Registry Report
           </button>
           <Link
             to="/admin/resources/add"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/10 active:scale-95"
           >
             <Plus size={16} /> Register New Asset
           </Link>
@@ -176,23 +176,23 @@ const ResourceList = () => {
       </div>
 
       {/* Filters Hub */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1 group">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-blue-400 transition-colors" size={18} />
           <input
             type="text"
             placeholder="Interrogate Name or Spatial Location..."
-            className="w-full pl-14 pr-6 py-5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all shadow-sm"
+            className="w-full pl-12 pr-5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all shadow-sm"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-3 bg-slate-100/50 p-2 rounded-2xl border border-slate-200/50">
+        <div className="flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-xl border border-slate-200/50 overflow-x-auto">
           {TYPES.map(type => (
             <button
               key={type}
               onClick={() => setSelectedType(type)}
-              className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+              className={`px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
                 ${selectedType === type
                   ? 'bg-slate-900 text-white shadow-lg'
                   : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
@@ -202,7 +202,7 @@ const ResourceList = () => {
           ))}
           <button
             onClick={fetchResources}
-            className="p-3 text-slate-400 hover:text-blue-600 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95"
+            className="p-2.5 text-slate-400 hover:text-blue-600 bg-white border border-slate-200 rounded-lg transition-all shadow-sm active:scale-95"
           >
             <RefreshCw size={16} />
           </button>
@@ -210,17 +210,17 @@ const ResourceList = () => {
       </div>
 
       {/* Resource Inventory */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {filtered.map(resource => (
           <motion.div
             layout
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             key={resource.id}
-            className="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-200 hover:border-blue-100 hover:shadow-2xl transition-all duration-500"
+            className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-blue-100 hover:shadow-lg transition-all duration-500"
           >
             {/* Visual Header */}
-            <div className="relative h-56 overflow-hidden bg-slate-100">
+            <div className="relative h-44 overflow-hidden bg-slate-100">
               {resource.imageUrl ? (
                 <img
                   src={resource.imageUrl}
@@ -234,12 +234,12 @@ const ResourceList = () => {
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
-              <div className="absolute top-6 left-6">
+              <div className="absolute top-4 left-4">
                 <StatusBadge status={resource.status} />
               </div>
 
               {/* Action Ribbon */}
-              <div className="absolute bottom-6 right-6 flex gap-3 translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
+              <div className="absolute bottom-4 right-4 flex gap-2 translate-y-12 group-hover:translate-y-0 transition-transform duration-500">
                 <Link
                   to={`/admin/resources/edit/${resource.id}`}
                   className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-white shadow-xl transition-all"
@@ -256,14 +256,14 @@ const ResourceList = () => {
             </div>
 
             {/* Core Specs */}
-            <div className="p-8">
+            <div className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-md">{resource.type}</span>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{resource.category}</span>
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors truncate">{resource.name}</h3>
               
-              <div className="space-y-4 pt-6 border-t border-slate-50">
+              <div className="space-y-4 pt-5 border-t border-slate-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-slate-400">
                     <MapPin size={14} className="text-blue-300" />
@@ -277,7 +277,7 @@ const ResourceList = () => {
 
                 <Link
                   to={`/admin/resources/view/${resource.id}`}
-                  className="flex items-center justify-center gap-2 w-full py-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"
                 >
                   <Eye size={14} /> Full Analytics
                 </Link>
@@ -287,8 +287,8 @@ const ResourceList = () => {
         ))}
 
         {filtered.length === 0 && (
-          <div className="col-span-full py-32 flex flex-col items-center justify-center bg-white rounded-[3rem] border border-dashed border-slate-200">
-            <Package size={48} className="mb-6 text-slate-200" />
+          <div className="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-slate-200">
+            <Package size={42} className="mb-5 text-slate-200" />
             <h3 className="text-xl font-bold text-slate-900 mb-2">Registry Void Detected.</h3>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No assets match your search parameters.</p>
           </div>

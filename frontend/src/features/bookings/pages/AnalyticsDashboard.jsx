@@ -54,7 +54,7 @@ const AnalyticsDashboard = () => {
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#64748b'];
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-40 pb-32 px-6 relative overflow-hidden">
+    <div className="bg-slate-50 min-h-screen pt-24 pb-16 px-4 sm:px-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-slate-50/20 backdrop-blur-[1px] pointer-events-none" />
       
       {/* Vibrant Lab Background Overlay */}
@@ -70,11 +70,11 @@ const AnalyticsDashboard = () => {
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="mb-20">
+        <div className="mb-8">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-6"
+            className="flex items-center gap-3 mb-4"
           >
             <div className="p-2 bg-blue-600/10 rounded-lg text-blue-600">
               <TrendingUp size={16} />
@@ -85,21 +85,21 @@ const AnalyticsDashboard = () => {
           <motion.h1 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-7xl font-bold text-slate-900 leading-tight mb-8"
+            className="text-4xl font-black tracking-normal text-slate-900 leading-tight mb-4 sm:text-5xl"
           >
             Strategic <br />Operational Analytics.
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xl text-slate-500 font-medium max-w-2xl"
+            className="text-base text-slate-500 font-medium max-w-2xl leading-7"
           >
             Evaluate institutional utilization patterns and synchronization performance through real-time resource telemetry.
           </motion.p>
         </div>
 
         {/* Summary Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           {[
             { label: 'Total Volume', value: summary?.totalBookings, icon: FileText, color: 'text-slate-600', bg: 'bg-slate-100' },
             { label: 'Approved Records', value: summary?.approvedBookings, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100' },
@@ -111,37 +111,37 @@ const AnalyticsDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="surface-glass p-8 rounded-[2.5rem] border border-white/20 shadow-xl flex items-start justify-between group hover:border-white/40 transition-all"
+              className="surface-glass p-5 rounded-2xl border border-white/20 shadow-md flex items-start justify-between group hover:border-white/40 transition-all"
             >
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">{card.label}</p>
-                <h4 className="text-4xl font-bold text-slate-900">{card.value}</h4>
+                <h4 className="text-2xl font-bold text-slate-900">{card.value}</h4>
               </div>
-              <div className={`p-4 ${card.bg} ${card.color} rounded-2xl group-hover:scale-110 transition-transform shadow-inner`}>
-                <card.icon size={24} />
+              <div className={`p-3 ${card.bg} ${card.color} rounded-xl group-hover:scale-110 transition-transform shadow-inner`}>
+                <card.icon size={20} />
               </div>
             </motion.div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Popular Resources Chart */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="surface-glass p-10 rounded-[3rem] border border-white/20 shadow-2xl"
+            className="surface-glass p-5 sm:p-6 rounded-2xl border border-white/20 shadow-lg"
           >
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                  <Target size={24} className="text-blue-600" />
+                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                  <Target size={20} className="text-blue-600" />
                   Asset Demand Distribution
                 </h3>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Targeting top 5 institutional resources</p>
               </div>
             </div>
             
-            <div className="h-[350px] w-full">
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={popularResources} layout="vertical" margin={{ left: 40, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
@@ -173,19 +173,19 @@ const AnalyticsDashboard = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="surface-glass p-10 rounded-[3rem] border border-white/20 shadow-2xl"
+            className="surface-glass p-5 sm:p-6 rounded-2xl border border-white/20 shadow-lg"
           >
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                  <Clock size={24} className="text-blue-600" />
+                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                  <Clock size={20} className="text-blue-600" />
                   Peak Synchronization Windows
                 </h3>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">24-hour occupancy density heatmap</p>
               </div>
             </div>
 
-            <div className="h-[350px] w-full">
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={peakHours} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>

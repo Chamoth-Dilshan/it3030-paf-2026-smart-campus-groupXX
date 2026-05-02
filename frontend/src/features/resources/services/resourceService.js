@@ -32,6 +32,23 @@ const resourceService = {
       console.error(`Error fetching resource ${id}:`, error);
       throw error;
     }
+  },
+  updateResource: async (id, payload) => {
+    try {
+      const response = await API.put(`/resources/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating resource ${id}:`, error);
+      throw error;
+    }
+  },
+  deleteResource: async (id) => {
+    try {
+      await API.delete(`/resources/${id}`);
+    } catch (error) {
+      console.error(`Error deleting resource ${id}:`, error);
+      throw error;
+    }
   }
 };
 

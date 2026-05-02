@@ -33,11 +33,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (token.startsWith("mock-token-")) {
                 // Developer Bypass: Handle fast local logins without signing real JWTs
-                String role = token.split("-")[2].toUpperCase(); // Extract MANAGER, ADMIN, USER
+                String role = token.substring("mock-token-".length()).toUpperCase(); // Extract MANAGER, ADMIN, USER
                 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                "dev@" + role.toLowerCase() + ".com",
+                                mockEmailForRole(role),
                                 null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
@@ -60,5 +60,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String mockEmailForRole(String role) {
+        return switch (role) {
+            case "ADMIN" -> "admin@campus.edu";
+            case "MANAGER" -> "john.m@campus.edu";
+            case "TECHNICIAN" -> "lahiru.fernando@campus.edu";
+            default -> "student1@campus.edu";
+        };
     }
 }

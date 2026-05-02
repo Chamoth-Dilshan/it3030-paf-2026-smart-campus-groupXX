@@ -31,14 +31,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Configuration
 @Profile("!mock")
-@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = false)
 @Slf4j
 public class DataSeeder {
 
@@ -56,6 +60,7 @@ public class DataSeeder {
         return args -> {
             try {
                 migrateLegacyBookingStatuses(mongoTemplate);
+                migrateLegacyResourceDocuments(mongoTemplate);
                 SeedUsers users = seedUsers(userRepository, passwordEncoder, defaultPassword);
                 SeedResources resources = seedResources(resourceRepository, users);
                 SeedTechnicians technicians = seedTechnicians(technicianRepository);
@@ -82,6 +87,84 @@ public class DataSeeder {
                 Query.query(Criteria.where("status").is("CANCELED")),
                 Update.update("status", BookingStatus.CANCELLED.name()),
                 "bookings");
+    }
+
+    private void migrateLegacyResourceDocuments(MongoTemplate mongoTemplate) {
+        List<String> validStatuses = Arrays.stream(ResourceStatus.values())
+                .map(Enum::name)
+                .toList();
+
+        mongoTemplate.updateMulti(
+                Query.query(new Criteria().orOperator(
+                        Criteria.where("status").exists(false),
+                        Criteria.where("status").is(null),
+                        Criteria.where("status").nin(validStatuses)
+                )),
+                Update.update("status", ResourceStatus.ACTIVE.name()),
+                "resources");
+
+        normalizeLegacyResource(mongoTemplate, "resource-lab-001", "Laboratory", "lab", 40,
+                List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
+                Map.of("start", "08:00", "end", "18:00"));
+        normalizeLegacyResource(mongoTemplate, "resource-hall-001", "Auditorium", "room", 300,
+                List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
+                Map.of("start", "08:00", "end", "20:00"));
+        normalizeLegacyResource(mongoTemplate, "resource-room-001", "Meeting Room", "room", 20,
+                List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
+                Map.of("start", "09:00", "end", "18:00"));
+        normalizeLegacyResource(mongoTemplate, "resource-bus-001", "Equipment", "vehicle", 30,
+                List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"),
+                Map.of("start", "07:00", "end", "19:00"));
+
+        mongoTemplate.updateMulti(
+                Query.query(blankOrMissing("category")),
+                Update.update("category", "Uncategorized"),
+                "resources");
+        mongoTemplate.updateMulti(
+                Query.query(blankOrMissing("type")),
+                Update.update("type", "resource"),
+                "resources");
+        mongoTemplate.updateMulti(
+                Query.query(blankOrMissing("location")),
+                Update.update("location", "Campus"),
+                "resources");
+        mongoTemplate.updateMulti(
+                Query.query(nonPositiveOrMissingNumber("capacity")),
+                Update.update("capacity", 1),
+                "resources");
+    }
+
+    private void normalizeLegacyResource(
+            MongoTemplate mongoTemplate,
+            String id,
+            String category,
+            String type,
+            int capacity,
+            List<String> availableDays,
+            Map<String, String> availableTimes) {
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("_id").is(id)),
+                new Update()
+                        .set("category", category)
+                        .set("type", type)
+                        .set("capacity", capacity)
+                        .set("availableDays", availableDays)
+                        .set("availableTimes", availableTimes),
+                "resources");
+    }
+
+    private Criteria blankOrMissing(String field) {
+        return new Criteria().orOperator(
+                Criteria.where(field).exists(false),
+                Criteria.where(field).is(null),
+                Criteria.where(field).is(""));
+    }
+
+    private Criteria nonPositiveOrMissingNumber(String field) {
+        return new Criteria().orOperator(
+                Criteria.where(field).exists(false),
+                Criteria.where(field).is(null),
+                Criteria.where(field).lte(0));
     }
 
     private SeedUsers seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder, String defaultPassword) {
@@ -222,7 +305,156 @@ public class DataSeeder {
                 .imageUrl("https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=1200")
                 .build());
 
+        seedGeneratedResources(resourceRepository, users);
+
         return new SeedResources(auditorium, computingLab, collaborativeSpace, lectureHall, seminarRoom);
+    }
+
+    private void seedGeneratedResources(ResourceRepository resourceRepository, SeedUsers users) {
+        Set<String> existingNames = resourceRepository.findAll().stream()
+                .map(Resource::getName)
+                .filter(name -> !isBlank(name))
+                .map(name -> name.toLowerCase().trim())
+                .collect(Collectors.toSet());
+
+        List<Resource> generated = new ArrayList<>();
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Auditorium",
+                "room",
+                "Auditorium",
+                "Main Campus",
+                45,
+                120,
+                650,
+                "https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=1200",
+                "Event venue with managed seating, AV support, and campus booking controls.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Laboratory",
+                "lab",
+                "Lab",
+                "Engineering Wing",
+                45,
+                24,
+                80,
+                "https://images.unsplash.com/photo-1582719471384-894fbb16e074?q=80&w=1200",
+                "Academic laboratory configured for practical sessions, research work, and supervised workshops.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Equipment",
+                "equipment",
+                "Equipment Kit",
+                "Central Store",
+                45,
+                1,
+                12,
+                "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",
+                "Shared campus equipment available for approved academic and operational use.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Classroom",
+                "room",
+                "Classroom",
+                "Academic Block",
+                45,
+                25,
+                140,
+                "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1200",
+                "Teaching space with standard classroom facilities and scheduled availability windows.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Sports",
+                "outdoor",
+                "Sports Facility",
+                "Sports Complex",
+                45,
+                20,
+                220,
+                "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=1200",
+                "Sports resource configured for student activities, training sessions, and campus events.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Meeting Room",
+                "room",
+                "Meeting Room",
+                "Collaboration Hub",
+                45,
+                6,
+                40,
+                "https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=1200",
+                "Bookable meeting space for group discussions, staff reviews, and project consultations.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Library",
+                "study-space",
+                "Library Space",
+                "Library Complex",
+                45,
+                8,
+                90,
+                "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=1200",
+                "Library resource configured for reading, quiet study, and collaborative academic work.");
+        addGeneratedCategoryResources(generated, existingNames, users,
+                "Media Studio",
+                "studio",
+                "Media Studio",
+                "Creative Media Center",
+                45,
+                4,
+                25,
+                "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1200",
+                "Studio space for video recording, audio production, streaming, and digital coursework.");
+
+        if (!generated.isEmpty()) {
+            resourceRepository.saveAll(generated);
+            log.info("Seeded {} generated campus resources.", generated.size());
+        }
+    }
+
+    private void addGeneratedCategoryResources(
+            List<Resource> generated,
+            Set<String> existingNames,
+            SeedUsers users,
+            String category,
+            String type,
+            String namePrefix,
+            String locationPrefix,
+            int count,
+            int minCapacity,
+            int maxCapacity,
+            String imageUrl,
+            String description) {
+        int capacityRange = Math.max(1, maxCapacity - minCapacity + 1);
+
+        for (int i = 1; i <= count; i++) {
+            String name = "%s %03d".formatted(namePrefix, i);
+            String normalizedName = name.toLowerCase();
+            if (existingNames.contains(normalizedName)) {
+                continue;
+            }
+
+            User manager = i % 2 == 0 ? users.primaryManager() : users.secondaryManager();
+            int floor = (i % 6) + 1;
+            int roomNumber = 100 + i;
+            int capacity = minCapacity + ((i * 17) % capacityRange);
+            ResourceStatus status = i % 17 == 0 ? ResourceStatus.OUT_OF_SERVICE : ResourceStatus.ACTIVE;
+            List<String> availableDays = i % 5 == 0
+                    ? List.of("MONDAY", "WEDNESDAY", "FRIDAY", "SATURDAY")
+                    : List.of("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY");
+            Map<String, String> availableTimes = i % 4 == 0
+                    ? Map.of("start", "10:00", "end", "19:00")
+                    : Map.of("start", "08:00", "end", "18:00");
+
+            generated.add(Resource.builder()
+                    .name(name)
+                    .category(category)
+                    .type(type)
+                    .location("%s, Floor %d, Room %d".formatted(locationPrefix, floor, roomNumber))
+                    .capacity(capacity)
+                    .status(status)
+                    .managerId(manager.getId())
+                    .managerName(manager.getName())
+                    .availableDays(availableDays)
+                    .availableTimes(availableTimes)
+                    .description(description)
+                    .imageUrl(imageUrl)
+                    .build());
+            existingNames.add(normalizedName);
+        }
     }
 
     private Resource ensureResource(ResourceRepository resourceRepository, Resource seed) {

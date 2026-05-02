@@ -231,7 +231,7 @@ export default function CreateIncident() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pt-40 pb-12 px-4">
+    <div className="max-w-4xl mx-auto pt-24 pb-12 px-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,7 +1,8 @@
-import { Ban, Plus, RefreshCw } from 'lucide-react';
+import { Ban, Pencil, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BookingDetailModal from '../components/BookingDetailModal';
+import BookingEditModal from '../components/BookingEditModal';
 import BookingList from '../components/BookingList';
 import { BOOKING_STATUS, BOOKING_STATUS_FILTERS } from '../constants/bookingStatus';
 import bookingService from '../services/bookingService';
@@ -9,6 +10,7 @@ import bookingService from '../services/bookingService';
 const MyBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [editingBooking, setEditingBooking] = useState(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState('');
@@ -68,7 +70,7 @@ const MyBookingsPage = () => {
               Refresh
             </button>
             <Link
-              to="/bookings"
+              to="/resources"
               className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
             >
               <Plus size={16} />
@@ -101,19 +103,34 @@ const MyBookingsPage = () => {
           loading={loading}
           emptyMessage="No bookings match this view."
           onView={setSelectedBooking}
-          renderActions={(booking) =>
-            booking.status === BOOKING_STATUS.APPROVED ? (
-              <button
-                type="button"
-                disabled={actionLoading === booking.id}
-                onClick={() => handleCancel(booking)}
-                className="inline-flex items-center gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Ban size={16} />
-                {actionLoading === booking.id ? 'Cancelling...' : 'Cancel'}
-              </button>
-            ) : null
-          }
+          renderActions={(booking) => (
+            <div className="flex flex-wrap gap-2">
+              {booking.status === BOOKING_STATUS.PENDING && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedBooking(null);
+                    setEditingBooking(booking);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+              )}
+              {booking.status === BOOKING_STATUS.APPROVED && (
+                <button
+                  type="button"
+                  disabled={actionLoading === booking.id}
+                  onClick={() => handleCancel(booking)}
+                  className="inline-flex items-center gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Ban size={16} />
+                  {actionLoading === booking.id ? 'Cancelling...' : 'Cancel'}
+                </button>
+              )}
+            </div>
+          )}
         />
       </div>
 
@@ -121,6 +138,16 @@ const MyBookingsPage = () => {
         booking={selectedBooking}
         isOpen={Boolean(selectedBooking)}
         onClose={() => setSelectedBooking(null)}
+      />
+
+      <BookingEditModal
+        booking={editingBooking}
+        isOpen={Boolean(editingBooking)}
+        onClose={() => setEditingBooking(null)}
+        onSaved={async () => {
+          setEditingBooking(null);
+          await fetchBookings();
+        }}
       />
     </div>
   );
